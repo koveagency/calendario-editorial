@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="pt" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLVSN — Editorial Calendar</title>
+<style>
+/* ── TOKENS ──────────────────────────────────────────────────── */
+:root {
+  --bg:#001627; --s1:#002235; --s2:#002b49; --b1:#003a65; --b2:#004575;
+  --text:#FFF; --silver:#b4b4b4; --dim:#6B7280; --gold:#00b5f8; --accent:#00b5f8;
+  --ig:#9B59B6; --tt:#888; --yt:#FF0000; --fb:#1877F2; --tw:#1D9BF0;
+  --green:#22C55E; --yellow:#EAB308; --red:#EF4444; --blue:#3B82F6;
+  --transition:0.25s ease;
+}
+[data-theme="light"] {
+  --bg:#f0f5f9; --s1:#FFF; --s2:#e5eef6; --b1:#c8d8e8; --b2:#9ab5cc;
+  --text:#001627; --silver:#334155; --dim:#64748b; --gold:#0098d0; --accent:#0098d0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);
+  transition:background var(--transition),color var(--transition);min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,textarea,select{font-family:inherit;outline:none}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInFast{from{opacity:0}to{opacity:1}}
+@keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.05)}}
+@keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,30px) scale(1.08)}}
+@keyframes float3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(15px,20px) scale(1.03)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes slideIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes progress{from{width:0}to{width:var(--w)}}
+
+/* ── VIEWS ──────────────────────────────────────────────────── */
+.view{display:none;min-height:100vh}
+.view.active{display:flex;flex-direction:column;animation:fadeInFast .25s ease}
+
+/* ── LOADING ────────────────────────────────────────────────── */
+#v-loading{background:#0A0B10;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.spin-logo{width:80px;height:80px;color:#00b5f8;animation:spin 1.8s linear infinite}
+.loading-brand{font-size:20px;font-weight:700;letter-spacing:6px;color:#FFF}
+.loading-sub{font-size:10px;color:#6B7280;letter-spacing:3px;text-transform:uppercase}
+
+/* ── AUTH ───────────────────────────────────────────────────── */
+#v-login,#v-signup{align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--bg)}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;pointer-events:none}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,#00b5f8,transparent);top:-100px;left:-100px;animation:float1 12s ease-in-out infinite}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,#002b49,transparent);bottom:-80px;right:-80px;animation:float2 15s ease-in-out infinite}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,#0098d0,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation:float3 10s ease-in-out infinite}
+.auth-card{position:relative;z-index:2;background:rgba(0,22,39,.93);backdrop-filter:blur(20px);
+  border:1px solid var(--b2);border-radius:20px;padding:48px 44px;width:100%;max-width:520px;
+  animation:slideIn .4s ease;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 60px rgba(0,181,248,.06)}
+[data-theme="light"] .auth-card{background:rgba(255,255,255,.94);box-shadow:0 32px 60px rgba(0,22,39,.15),0 0 40px rgba(0,181,248,.05)}
+[data-theme="light"] #v-login,[data-theme="light"] #v-signup{background:linear-gradient(135deg,#e8f4ff,#f0f8ff)}
+.auth-logo-wrap{text-align:center;margin-bottom:28px}
+.auth-logo-icon{width:60px;height:60px;color:var(--gold);margin:0 auto 14px}
+.auth-brand{font-size:26px;font-weight:800;letter-spacing:5px;color:var(--text)}
+.auth-sub{font-size:11px;color:var(--dim);letter-spacing:3px;margin-top:4px}
+.auth-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.auth-hint{font-size:12px;color:var(--dim);margin-bottom:22px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;color:var(--silver);letter-spacing:.8px;text-transform:uppercase;margin-bottom:5px}
+.form-input{width:100%;background:rgba(10,11,16,.6);border:1px solid var(--b2);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-size:13px;transition:border-color var(--transition),box-shadow var(--transition)}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(210,185,140,.12)}
+.phone-row{display:flex;gap:6px}
+.phone-row select{flex:0 0 110px}
+.phone-row input{flex:1}
+.admin-badge{display:none;align-items:center;gap:7px;padding:7px 12px;background:rgba(210,185,140,.1);
+  border:1px solid rgba(210,185,140,.3);border-radius:7px;color:var(--gold);font-size:12px;margin-bottom:14px}
+.admin-badge.show{display:flex}
+.invite-badge{display:none;align-items:center;gap:7px;padding:7px 12px;background:rgba(29,155,240,.1);
+  border:1px solid rgba(29,155,240,.3);border-radius:7px;color:var(--tw);font-size:12px;margin-bottom:14px}
+.invite-badge.show{display:flex}
+.btn-primary{width:100%;padding:11px;background:var(--text);color:var(--bg);border-radius:8px;
+  font-size:13px;font-weight:700;letter-spacing:.5px;transition:opacity .2s,transform .1s;position:relative;overflow:hidden}
+.btn-primary:hover{opacity:.9}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.2) 50%,transparent 100%);
+  background-size:200%;transform:translateX(-100%);transition:transform .5s}
+.btn-primary:hover::after{transform:translateX(100%)}
+.auth-footer{text-align:center;margin-top:16px;font-size:12px;color:var(--dim)}
+.auth-footer a{color:var(--silver);text-decoration:underline;cursor:pointer}
+.err-msg{display:none;color:#EF4444;font-size:12px;margin-top:6px;padding:7px 10px;
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:6px}
+.err-msg.show{display:block}
+
+/* ── NAVBAR ──────────────────────────────────────────────────── */
+#navbar{position:fixed;top:0;left:0;right:0;height:56px;z-index:100;
+  background:var(--s1);border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;padding:0 20px;gap:12px}
+.nav-logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-logo-icon{width:26px;height:26px;color:var(--gold)}
+.nav-logo-text{font-size:15px;font-weight:800;letter-spacing:3px}
+.nav-logo-sub{font-size:9px;color:var(--dim);letter-spacing:2px;margin-left:2px}
+.nav-search{position:relative;flex:1;max-width:280px;margin:0 auto}
+.nav-search input{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:7px;
+  padding:7px 12px 7px 32px;color:var(--text);font-size:13px;transition:border-color var(--transition)}
+.nav-search input:focus{border-color:var(--b2)}
+.nav-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:13px;pointer-events:none}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.nav-avatar{width:30px;height:30px;border-radius:50%;background:var(--ig);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.nav-user-info{display:flex;flex-direction:column;line-height:1.2}
+.nav-user-name{font-size:12px;font-weight:600}
+.nav-user-role{font-size:10px;color:var(--dim)}
+.role-pill{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.role-pill.admin{background:rgba(210,185,140,.15);color:var(--gold);border:1px solid rgba(210,185,140,.3)}
+.role-pill.sub-admin{background:rgba(155,89,182,.15);color:var(--ig);border:1px solid rgba(155,89,182,.3)}
+.role-pill.member{background:rgba(180,195,220,.08);color:var(--silver);border:1px solid rgba(180,195,220,.2)}
+.nav-btn{padding:5px 12px;background:transparent;border:1px solid var(--b2);color:var(--silver);
+  border-radius:6px;font-size:12px;transition:all .2s}
+.nav-btn:hover{border-color:var(--silver);color:var(--text)}
+.nav-btn.gold{border-color:rgba(210,185,140,.4);color:var(--gold)}
+.nav-btn.gold:hover{border-color:var(--gold)}
+.nav-icon-btn{width:32px;height:32px;border-radius:7px;background:transparent;border:1px solid var(--b1);
+  color:var(--dim);display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+.nav-icon-btn:hover{border-color:var(--b2);color:var(--text);background:var(--s2)}
+
+/* ── APP LAYOUT ─────────────────────────────────────────────── */
+#v-calendar.active{flex-direction:row;padding-top:56px}
+.sidebar{width:210px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);
+  overflow-y:auto;padding:16px 0;height:calc(100vh - 56px);position:sticky;top:56px}
+.sidebar-section{margin-bottom:20px}
+.sidebar-title{font-size:10px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;padding:0 16px;margin-bottom:6px}
+.month-item{padding:7px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+  transition:background .15s;border-left:2px solid transparent;font-size:13px;color:var(--silver)}
+.month-item:hover{background:var(--s2);color:var(--text)}
+.month-item.active{background:var(--s2);border-left-color:var(--gold)}
+/* Estado relativo a hoje */
+.month-item.m-past{color:#8a96a4}
+.month-item.m-past .m-dot{background:#5a6573}
+.month-item.m-future{color:#39d98a}
+.month-item.m-future .m-dot{background:#39d98a}
+.month-item.m-current{color:#5cc3ff;font-weight:700}
+.month-item.m-current .m-dot{background:#5cc3ff;box-shadow:0 0 7px #5cc3ff}
+.m-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.m-dot.has-posts{background:var(--green)}
+.m-dot.partial{background:var(--yellow)}
+.legend-item{display:flex;align-items:center;gap:7px;padding:4px 16px;font-size:11px;color:var(--dim)}
+.legend-dot{width:9px;height:9px;border-radius:2px}
+.main-content{flex:1;overflow-y:auto;padding:24px 28px;min-width:0}
+
+/* ── STATS ROW ──────────────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:12px 14px}
+.stat-card-label{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.stat-dot{width:7px;height:7px;border-radius:50%}
+.stat-nums{font-size:18px;font-weight:700}
+.stat-nums span{font-size:12px;color:var(--dim);font-weight:400}
+.stat-sub{font-size:10px;color:var(--dim);margin-top:2px}
+.stat-bar{height:3px;background:var(--b1);border-radius:2px;margin-top:8px;overflow:hidden}
+.stat-fill{height:100%;border-radius:2px;transition:width .8s ease}
+
+/* ── MONTH HEADER ───────────────────────────────────────────── */
+.month-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px}
+.month-nav-group{display:flex;align-items:center;gap:10px}
+.month-nav-btn{width:30px;height:30px;background:var(--s1);border:1px solid var(--b2);color:var(--silver);
+  border-radius:7px;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.month-nav-btn:hover{border-color:var(--silver);color:var(--text)}
+.month-title{font-size:20px;font-weight:700;letter-spacing:.5px}
+.add-post-btn{padding:7px 16px;background:var(--text);color:var(--bg);border-radius:7px;font-size:12px;
+  font-weight:700;transition:opacity .2s;display:none}
+.add-post-btn:hover{opacity:.85}
+.add-post-btn.visible{display:block}
+
+/* ── PLATFORM FILTERS ───────────────────────────────────────── */
+.platform-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pf-btn{padding:5px 12px;border-radius:18px;border:1px solid var(--b2);background:transparent;
+  color:var(--dim);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s}
+.pf-btn:hover{color:var(--text);border-color:var(--b2)}
+.pf-btn.active-all{border-color:var(--silver);background:rgba(180,195,220,.08);color:var(--text)}
+.pf-btn.active-ig{border-color:var(--ig);background:rgba(155,89,182,.1);color:var(--ig)}
+.pf-btn.active-tt{border-color:#555;background:rgba(255,255,255,.04);color:#bbb}
+.pf-btn.active-yt{border-color:var(--yt);background:rgba(255,0,0,.1);color:var(--yt)}
+.pf-btn.active-fb{border-color:var(--fb);background:rgba(24,119,242,.1);color:var(--fb)}
+.pf-btn.active-tw{border-color:var(--tw);background:rgba(29,155,240,.1);color:var(--tw)}
+.pf-dot{width:7px;height:7px;border-radius:50%}
+
+/* ── CALENDAR GRID ──────────────────────────────────────────── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--b1);
+  border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.cal-weekday{background:var(--s1);padding:8px;text-align:center;font-size:10px;color:var(--dim);
+  letter-spacing:1px;text-transform:uppercase;font-weight:600}
+.cal-day{background:var(--bg);min-height:145px;padding:8px;transition:background .15s;cursor:pointer;position:relative}
+.cal-day:hover{background:var(--s2)}
+.cal-day.today{background:#001f38;border:1px solid rgba(0,181,248,.25)}
+.cal-day.today .day-num{background:var(--gold);color:#001627;border-radius:50%;width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;font-weight:700}
+.cal-day.other-month{opacity:.2}
+.day-num{font-size:13px;color:var(--text);margin-bottom:5px;font-weight:600}
+.holiday-chip{font-size:9px;background:rgba(210,185,140,.12);color:var(--gold);border-radius:3px;
+  padding:1px 5px;margin-bottom:4px;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── POST CARDS ─────────────────────────────────────────────── */
+.pc{border-radius:5px;padding:4px 7px;margin-bottom:3px;font-size:11px;cursor:pointer;
+  transition:filter .15s;border-left:3px solid transparent;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;animation:fadeIn .2s ease both}
+.pc:hover{filter:brightness(1.2)}
+.pc.ig{background:rgba(155,89,182,.22);border-color:var(--ig);color:#d9b3f0}
+.pc.tt{background:rgba(180,180,180,.12);border-color:#888;color:#d0d0d0}
+.pc.yt{background:rgba(255,0,0,.18);border-color:var(--yt);color:#ff9999}
+.pc.fb{background:rgba(24,119,242,.2);border-color:var(--fb);color:#99c5ff}
+.pc.tw{background:rgba(0,181,248,.18);border-color:#00b5f8;color:#80dcff}
+[data-theme="light"] .pc.ig{background:rgba(155,89,182,.15);color:#7b2fa8}
+[data-theme="light"] .pc.tt{background:rgba(80,80,80,.1);color:#444}
+[data-theme="light"] .pc.yt{background:rgba(255,0,0,.1);color:#cc0000}
+[data-theme="light"] .pc.fb{background:rgba(24,119,242,.12);color:#1055b8}
+[data-theme="light"] .pc.tw{background:rgba(0,152,208,.12);color:#0077a8}
+[data-theme="light"] .cal-day{background:var(--bg)}
+[data-theme="light"] .day-num{color:var(--text)}
+[data-theme="light"] .cal-weekday{color:var(--dim)}
+[data-theme="light"] .cal-day.today{background:#ddeef8;border-color:rgba(0,152,208,.3)}
+.pc.story{opacity:.65;font-style:italic}
+.pc.pf-hidden{display:none}
+.pc.search-hidden{display:none}
+.sd{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.sd.planned{background:var(--dim)}
+.sd.scheduled{background:var(--blue)}
+.sd.on-time{background:var(--green)}
+.sd.late{background:var(--yellow)}
+.sd.not-published{background:var(--red)}
+.more-posts{font-size:10px;color:var(--dim);padding:2px 4px;cursor:pointer}
+.more-posts:hover{color:var(--silver)}
+
+/* ── MODALS ─────────────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;
+  align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)}
+.overlay.open{display:flex;animation:fadeInFast .2s ease}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:13px;width:100%;
+  max-width:560px;max-height:90vh;overflow-y:auto;animation:slideIn .2s ease}
+.modal-lg{max-width:640px}
+.modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--b1);
+  display:flex;align-items:flex-start;justify-content:space-between}
+.modal-close{background:transparent;color:var(--dim);font-size:20px;line-height:1;padding:0 2px;transition:color .2s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:18px 22px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--b1);display:flex;gap:8px;justify-content:flex-end}
+.modal-section{margin-bottom:16px}
+.modal-label{font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.modal-input{width:100%;background:var(--bg);border:1px solid var(--b1);border-radius:7px;
+  padding:8px 12px;color:var(--text);font-size:13px;transition:border-color var(--transition)}
+.modal-input:focus{border-color:var(--b2)}
+.modal-textarea{resize:vertical;min-height:72px}
+.platform-badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.platform-badge.ig{background:rgba(155,89,182,.15);color:var(--ig);border:1px solid rgba(155,89,182,.3)}
+.platform-badge.tt{background:rgba(255,255,255,.06);color:#bbb;border:1px solid #444}
+.platform-badge.yt{background:rgba(255,0,0,.12);color:var(--yt);border:1px solid rgba(255,0,0,.3)}
+.platform-badge.fb{background:rgba(24,119,242,.12);color:var(--fb);border:1px solid rgba(24,119,242,.3)}
+.platform-badge.tw{background:rgba(29,155,240,.12);color:var(--tw);border:1px solid rgba(29,155,240,.3)}
+.lang-tabs{display:flex;gap:2px;background:var(--bg);border-radius:7px;padding:3px;margin-bottom:10px}
+.lang-tab{flex:1;padding:5px;text-align:center;font-size:12px;border-radius:5px;cursor:pointer;color:var(--dim);transition:all .15s}
+.lang-tab.active{background:var(--s1);color:var(--text)}
+.status-btns{display:flex;gap:5px;flex-wrap:wrap}
+.sb{padding:5px 10px;border-radius:5px;font-size:11px;border:1px solid var(--b2);background:transparent;
+  color:var(--dim);cursor:pointer;transition:all .15s}
+.sb:hover{border-color:var(--silver);color:var(--text)}
+.sb.active-planned{border-color:var(--dim);color:#9CA3AF;background:rgba(107,114,128,.15)}
+.sb.active-scheduled{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.1)}
+.sb.active-on-time{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.1)}
+.sb.active-late{border-color:var(--yellow);color:var(--yellow);background:rgba(234,179,8,.1)}
+.sb.active-not-published{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.1)}
+.link-err{display:none;font-size:11px;color:var(--red);margin-top:4px}
+.link-err.show{display:block}
+.btn-save{background:var(--text);color:var(--bg);padding:8px 20px;border-radius:7px;font-size:13px;font-weight:700;transition:opacity .2s}
+.btn-save:hover{opacity:.85}
+.btn-ghost{background:transparent;color:var(--dim);border:1px solid var(--b1);padding:8px 14px;border-radius:7px;font-size:13px;transition:all .2s}
+.btn-ghost:hover{color:var(--text);border-color:var(--b2)}
+
+/* ── ADMIN ──────────────────────────────────────────────────── */
+#v-admin.active{flex-direction:column}
+.admin-layout{display:flex;flex-direction:column;flex:1;padding-top:56px}
+.admin-inner{padding:24px 28px}
+.admin-heading{font-size:20px;font-weight:700;margin-bottom:4px}
+.admin-sub{font-size:13px;color:var(--dim);margin-bottom:20px}
+.tabs-row{display:flex;border-bottom:1px solid var(--b1);margin-bottom:22px}
+.tab-btn{padding:10px 20px;font-size:13px;color:var(--dim);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;background:transparent}
+.tab-btn.active{color:var(--text);border-color:var(--text)}
+.tab-btn:hover{color:var(--silver)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn .2s ease}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;
+  padding:10px 12px;border-bottom:1px solid var(--b1)}
+.data-table td{padding:12px;border-bottom:1px solid var(--b1);font-size:13px;color:var(--silver);vertical-align:middle}
+.data-table tr:hover td{background:var(--s2)}
+.plat-tags{display:flex;gap:4px;flex-wrap:wrap}
+.ptag{padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700}
+.ptag.ig{background:rgba(155,89,182,.15);color:var(--ig)}
+.ptag.tt{background:rgba(255,255,255,.05);color:#aaa}
+.ptag.yt{background:rgba(255,0,0,.1);color:var(--yt)}
+.ptag.fb{background:rgba(24,119,242,.1);color:var(--fb)}
+.ptag.tw{background:rgba(29,155,240,.1);color:var(--tw)}
+.invite-box{max-width:460px;background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:22px}
+.plat-checks{display:flex;gap:8px;flex-wrap:wrap}
+.plat-ck{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;
+  border:1px solid var(--b1);cursor:pointer;font-size:12px;transition:all .15s}
+.plat-ck:hover{border-color:var(--b2)}
+.plat-ck input{accent-color:var(--ig)}
+.invite-result{display:none;margin-top:12px;padding:10px;background:rgba(34,197,94,.08);
+  border:1px solid rgba(34,197,94,.3);border-radius:7px;font-size:12px;color:var(--green)}
+.invite-result.show{display:block}
+.invite-link-row{display:flex;gap:6px;margin-top:6px}
+.invite-link-input{flex:1;background:var(--bg);border:1px solid var(--b1);border-radius:5px;
+  padding:5px 8px;color:var(--silver);font-size:11px}
+.copy-btn{padding:5px 10px;background:var(--s1);border:1px solid var(--b2);color:var(--silver);
+  border-radius:5px;font-size:11px;cursor:pointer;transition:all .2s}
+.copy-btn:hover{color:var(--text)}
+
+/* ── SETTINGS MODAL ─────────────────────────────────────────── */
+.settings-section{margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid var(--b1)}
+.settings-section:last-child{border-bottom:none;margin-bottom:0}
+.settings-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.settings-row-label{font-size:13px;color:var(--silver)}
+.toggle-wrap{position:relative;width:44px;height:24px}
+.toggle-input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--b2);border-radius:12px;cursor:pointer;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.3s}
+.toggle-input:checked + .toggle-slider{background:var(--gold)}
+.toggle-input:checked + .toggle-slider::before{transform:translateX(20px)}
+.lang-btns{display:flex;gap:6px}
+.lang-btn{padding:5px 14px;border-radius:6px;border:1px solid var(--b2);background:transparent;
+  color:var(--dim);font-size:12px;cursor:pointer;transition:all .2s}
+.lang-btn.active{border-color:var(--silver);color:var(--text);background:var(--s2)}
+.settings-name-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.settings-avatar{width:40px;height:40px;border-radius:50%;background:var(--ig);display:flex;
+  align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
+
+/* ── ADD POST MODAL ─────────────────────────────────────────── */
+.add-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.add-grid .full{grid-column:1/-1}
+
+/* ── DAY VIEW ───────────────────────────────────────────────── */
+.day-plat-group{margin-bottom:18px}
+.day-plat-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+.day-plat-name{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.day-post-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;
+  border:1px solid var(--b1);background:var(--s2);cursor:pointer;transition:all .15s;margin-bottom:6px}
+.day-post-item:hover{border-color:var(--b2);background:var(--b1);transform:translateX(2px)}
+.day-post-time{font-size:12px;color:var(--dim);font-weight:600;min-width:40px;flex-shrink:0}
+.day-post-info{flex:1;min-width:0}
+.day-post-title{font-size:13px;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.day-post-meta{font-size:11px;color:var(--dim)}
+.day-post-status{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:11px}
+.day-empty{text-align:center;padding:32px 20px;color:var(--dim)}
+.day-empty-icon{font-size:32px;margin-bottom:10px}
+.day-story-badge{font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.06);color:var(--dim);font-style:italic;margin-left:4px}
+
+/* ── ATTACHMENTS ────────────────────────────────────────────── */
+.att-drop{border:1.5px dashed var(--b1);border-radius:9px;padding:16px;text-align:center;cursor:pointer;transition:.18s;background:var(--bg)}
+.att-drop:hover,.att-drop.drag{border-color:var(--gold);background:rgba(0,181,248,.05)}
+.att-drop-icon{font-size:22px;margin-bottom:6px;opacity:.7}
+.att-drop-txt{font-size:12px;color:var(--dim)}
+.att-drop-txt b{color:var(--silver)}
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-top:12px}
+.att-item{position:relative;border:1px solid var(--b1);border-radius:8px;overflow:hidden;background:var(--bg);aspect-ratio:1}
+.att-item img,.att-item video{width:100%;height:100%;object-fit:cover;display:block}
+.att-file{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:6px;text-align:center}
+.att-file-icon{font-size:26px;margin-bottom:4px}
+.att-file-name{font-size:9px;color:var(--silver);word-break:break-all;line-height:1.25;max-height:34px;overflow:hidden}
+.att-meta{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));color:#fff;font-size:8px;padding:10px 4px 3px;text-align:center}
+.att-actions{position:absolute;top:3px;right:3px;display:flex;gap:3px;opacity:0;transition:.15s}
+.att-item:hover .att-actions{opacity:1}
+.att-btn{width:20px;height:20px;border:none;border-radius:5px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.att-btn:hover{background:var(--gold);color:#001627}
+.att-btn.del:hover{background:#ff5470;color:#fff}
+
+/* ── MISC ───────────────────────────────────────────────────── */
+.hidden{display:none!important}
+.success-msg{display:none;color:var(--green);font-size:12px;margin-top:6px}
+.success-msg.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- ███ CLVSN LOGO DEFS ███ -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Symbol only (triskelion shape from official CLVSN logo) -->
+    <symbol id="clvsn-sym" viewBox="37 184 217 208">
+      <path fill="currentColor" d="M 161.40625 191.546875 C 169.238281 194.914062 175.621094 199.898438 181.070312 206.441406 C 186.5625 213.886719 189.324219 221.667969 190.425781 230.808594 C 190.761719 236.558594 190.738281 242.332031 190.75 248.085938 C 190.789062 256.660156 191.074219 264.664062 194.695312 272.632812 C 199.210938 279.234375 204.949219 283.199219 211.847656 287.082031 C 217.277344 290.140625 222.636719 293.324219 227.980469 296.53125 L 230.152344 297.820312 C 236.621094 302.121094 240.976562 309.683594 244.570312 316.429688 C 248.203125 324.519531 248.382812 333.0625 247.613281 341.769531 C 245.976562 350.59375 241.96875 357.957031 236.410156 364.917969 C 231.179688 370.597656 224.691406 374.632812 217.417969 377.136719 C 210.226562 379.34375 203.035156 380.148438 195.582031 378.898438 C 184.875 376.414062 175.867188 371.597656 166.539062 365.988281 C 159.546875 361.804688 153.792969 358.746094 145.5625 358.570312 L 142.625 358.476562 C 134.410156 358.929688 127.101562 363.601562 120.222656 367.695312 C 109.242188 374.058594 99.152344 379.273438 86.191406 379.589844 C 78.6875 379.519531 71.894531 377.417969 65.226562 374.042969 C 58.734375 370.140625 53.003906 364.890625 49.007812 358.4375 C 43.960938 348.707031 42.25 339.75 42.652344 328.933594 C 43.160156 321.40625 46.339844 314.699219 50.449219 308.480469 C 57.152344 299.476562 66.195312 294.027344 75.707031 288.425781 C 86.59375 282.359375 86.59375 282.359375 95.121094 273.5 C 98.324219 267.617188 99.339844 261.324219 99.394531 254.695312 L 99.429688 252.789062 C 99.46875 250.796875 99.5 248.804688 99.527344 246.8125 C 99.707031 233.429688 100.257812 221.824219 107.132812 209.949219 C 112.089844 202.117188 118.265625 196.820312 126.410156 192.402344 C 137.46875 187.726562 150.125 187.445312 161.40625 191.546875"/>
+      <path fill="var(--bg,#001627)" d="M 153.359375 210.023438 C 158.167969 211.984375 162.214844 215 165.675781 218.859375 C 168.25 222.710938 169.320312 226.230469 169.941406 230.808594 C 170.066406 233.351562 170.074219 235.890625 170.078125 238.4375 L 170.089844 240.710938 C 170.097656 242.332031 170.105469 243.957031 170.113281 245.582031 C 170.121094 248.160156 170.136719 250.738281 170.15625 253.3125 C 170.210938 260.640625 170.253906 267.964844 170.285156 275.292969 C 170.304688 279.78125 170.332031 284.269531 170.371094 288.757812 C 170.382812 290.460938 170.390625 292.164062 170.390625 293.867188 C 170.414062 305.195312 170.722656 315.859375 176.238281 326.085938 C 181.328125 333.527344 189.492188 338.355469 197.253906 342.621094 C 201.160156 343.921875 204.597656 343.699219 208.617188 342.941406 L 210.910156 341.769531 C 212.207031 339.179688 212.574219 336.9375 212.992188 334.085938 C 212.792969 331.375 212.792969 331.375 210.859375 329.042969 C 207.902344 325.636719 204.203125 323.804688 200.265625 321.726562 C 196.667969 319.71875 194.316406 317.667969 192.0625 314.195312 C 191.066406 312.355469 190.605469 310.777344 190.425781 308.695312 L 190.210938 306.789062 L 190.425781 305.066406 C 191.542969 303.589844 191.542969 303.589844 192.988281 302.507812 C 195.601562 302.027344 195.601562 302.027344 198.960938 302.507812 C 201.964844 303.972656 204.699219 305.800781 207.496094 307.628906 C 208.953125 308.464844 210.410156 309.300781 211.871094 310.132812 C 217.285156 313.414062 221.976562 316.917969 225.367188 322.351562 C 227.5625 326.746094 228.199219 330.902344 227.980469 335.792969 C 227.296875 340.929688 226.085938 345.519531 223.128906 349.824219 C 219.785156 353.8125 215.757812 356.039062 211.125 358.253906 C 206.203125 359.292969 201.082031 359.769531 196.222656 358.246094 C 190.402344 356.035156 185.046875 353.066406 179.648438 349.984375 L 176.847656 348.398438 C 169.648438 344.316406 162.5 340.152344 155.359375 335.96875 C 149.292969 332.414062 143.199219 328.910156 137.082031 325.445312 L 134.65625 324.066406 C 126.464844 319.441406 120.027344 316 110.515625 315.894531 L 108.277344 315.820312 C 102.742188 315.765625 98.832031 316.976562 93.976562 319.578125 L 92.3125 320.429688 C 90.773438 321.238281 89.246094 322.074219 87.734375 322.9375 L 86.203125 323.769531 C 82.914062 325.628906 80.730469 327.542969 78.613281 330.671875 C 77.683594 333.117188 77.683594 333.117188 77.761719 335.792969 C 78.660156 339.011719 78.660156 339.011719 80.320312 341.769531 C 81.714844 343.140625 81.714844 343.140625 83.734375 343.476562 C 87.191406 343.890625 89.449219 343.910156 92.695312 342.636719 C 95.453125 341.273438 98.117188 339.816406 100.730469 338.195312 C 103.875 336.246094 106.546875 335.160156 110.203125 334.847656 C 113.183594 335.007812 115.257812 336.085938 117.875 337.5 L 119.582031 339.207031 C 120.011719 341.179688 120.011719 341.179688 119.582031 343.476562 C 115.617188 347.230469 111.125 349.886719 106.40625 352.597656 L 104.285156 353.851562 C 98.789062 357.03125 93.753906 359.070312 87.308594 359.160156 C 82.128906 359.042969 77.960938 358.09375 73.492188 355.425781 C 69.675781 352.496094 66.742188 349.230469 64.585938 344.914062 C 62.898438 340.542969 62.234375 336.207031 62.398438 331.527344 C 63.246094 326.558594 65.523438 322.15625 68.449219 318.085938 C 73.644531 311.960938 81.859375 308.179688 88.75 304.265625 L 91.636719 302.613281 C 94.171875 301.164062 96.710938 299.714844 99.246094 298.273438 C 101.851562 296.789062 104.457031 295.304688 107.058594 293.816406 L 108.613281 292.929688 C 113.097656 290.367188 117.582031 287.804688 122.0625 285.238281 C 124.425781 283.890625 126.796875 282.546875 129.167969 281.210938 C 136.652344 276.953125 143.328125 272.703125 148.871094 265.964844 C 153.414062 257.378906 154.753906 249.355469 154.84375 239.773438 L 154.917969 237.101562 C 154.941406 234.671875 154.90625 232.363281 154.578125 229.957031 C 153.148438 227.265625 153.148438 227.265625 151.164062 225.6875 C 148.6875 224.453125 146.441406 224.558594 143.703125 224.597656 C 141.585938 224.738281 141.585938 224.738281 139.269531 226.222656 C 137.179688 228.628906 136.613281 230.285156 135.800781 233.371094 C 135.488281 236.546875 135.449219 239.734375 135.390625 242.921875 C 135.226562 247.648438 134.328125 251.234375 132.386719 255.5625 C 130.414062 257.695312 130.414062 257.695312 128.117188 258.976562 C 125.453125 259.402344 125.453125 259.402344 122.996094 258.976562 C 121.585938 257.597656 121.585938 257.597656 120.4375 255.5625 C 120.105469 252.945312 120.105469 252.945312 120.097656 249.898438 L 120.085938 246.535156 L 120.105469 244.785156 C 120.117188 243.046875 120.105469 241.308594 120.085938 239.566406 C 120.109375 232.253906 120.671875 226.394531 124.285156 219.992188 C 127.804688 215.472656 131.332031 212.527344 136.652344 210.324219 C 141.855469 208.652344 148.097656 208.699219 153.359375 210.023438"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ███ LOADING ███ -->
+<div id="v-loading" class="view active">
+  <svg class="spin-logo" style="color:var(--gold)"><use href="#clvsn-sym"/></svg>
+  <div class="loading-brand">CLVSN</div>
+  <div class="loading-sub">Editorial Calendar</div>
+</div>
+
+<!-- ███ LOGIN ███ -->
+<div id="v-login" class="view">
+  <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  <div style="display:flex;align-items:center;justify-content:center;flex:1;padding:20px;position:relative;z-index:2">
+    <div class="auth-card">
+      <div class="auth-logo-wrap">
+        <svg class="auth-logo-icon" style="color:var(--gold)"><use href="#clvsn-sym"/></svg>
+        <div class="auth-brand">CLVSN</div>
+        <div class="auth-sub">Editorial Calendar</div>
+      </div>
+      <div class="auth-title">Entrar</div>
+      <div class="auth-hint">Acede ao teu calendário editorial</div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input id="login-email" class="form-input" type="email" placeholder="o.teu@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input id="login-pw" class="form-input" type="password" placeholder="••••••••" autocomplete="current-password">
+        <div id="login-err" class="err-msg">Email ou password incorretos.</div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+      <div class="auth-footer">Não tens conta? <a onclick="showView('v-signup')">Usa o link de convite</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ███ SIGNUP ███ -->
+<div id="v-signup" class="view">
+  <div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
+  <div style="display:flex;align-items:center;justify-content:center;flex:1;padding:20px;position:relative;z-index:2">
+    <div class="auth-card" style="max-width:520px">
+      <div class="auth-logo-wrap">
+        <svg class="auth-logo-icon" style="color:var(--gold)"><use href="#clvsn-sym"/></svg>
+        <div class="auth-brand">CLVSN</div>
+        <div class="auth-sub">Criar Conta</div>
+      </div>
+      <div id="su-admin-badge" class="admin-badge">⭐ Conta de Administrador</div>
+      <div id="su-invite-badge" class="invite-badge">🔗 Convite válido</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Primeiro Nome</label>
+          <input id="su-fname" class="form-input" type="text" placeholder="Rodrigo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apelido</label>
+          <input id="su-lname" class="form-input" type="text" placeholder="Constantino">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input id="su-email" class="form-input" type="email" placeholder="o.teu@email.com" oninput="onSignupEmail(this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telemóvel</label>
+        <div class="phone-row">
+          <select id="su-country" class="form-input">
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+381">🇷🇸 +381</option>
+          </select>
+          <input id="su-phone" class="form-input" type="tel" placeholder="912 345 678">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input id="su-pw" class="form-input" type="password" placeholder="Mínimo 8 caracteres">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar Password</label>
+        <input id="su-pw2" class="form-input" type="password" placeholder="Repetir password">
+        <div id="su-err" class="err-msg">Erro no registo.</div>
+      </div>
+      <button class="btn-primary" onclick="doSignup()">Criar Conta</button>
+      <div class="auth-footer">Já tens conta? <a onclick="showView('v-login')">Entrar</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ███ CALENDAR APP ███ -->
+<div id="v-calendar" class="view">
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <div class="nav-logo">
+      <svg class="nav-logo-icon" style="color:var(--gold)"><use href="#clvsn-sym"/></svg>
+      <div>
+        <div class="nav-logo-text">CLVSN</div>
+      </div>
+      <span class="nav-logo-sub">EDITORIAL</span>
+    </div>
+    <div class="nav-search">
+      <span class="nav-search-icon">⌕</span>
+      <input id="search-input" type="text" placeholder="Pesquisar posts..." oninput="doSearch(this.value)">
+    </div>
+    <div class="nav-right">
+      <div id="nav-avatar" class="nav-avatar">RC</div>
+      <div class="nav-user-info">
+        <div id="nav-username" class="nav-user-name">Rodrigo</div>
+        <div id="nav-role-wrap"><span id="nav-role" class="role-pill admin">ADMIN</span></div>
+      </div>
+      <button id="admin-nav-btn" class="nav-btn gold hidden" onclick="showView('v-admin')">⚙ Admin</button>
+      <button class="nav-icon-btn" onclick="openSettingsModal()" title="Definições">⚙</button>
+      <button class="nav-btn" data-i18n="logout" onclick="doLogout()">Sair</button>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR + MAIN -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">2026</div>
+      <div id="month-list"></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title" data-i18n="platforms">Plataformas</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--ig)"></div>Instagram</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#555"></div>TikTok</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--yt)"></div>YouTube</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--fb)"></div>Facebook</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--tw)"></div>Twitter/X</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title" data-i18n="status">Status</div>
+      <div class="legend-item"><span class="sd planned"></span>Planeado</div>
+      <div class="legend-item"><span class="sd scheduled"></span>Agendado</div>
+      <div class="legend-item"><span class="sd on-time"></span>Publicado ✓</div>
+      <div class="legend-item"><span class="sd late"></span>Publicado tarde</div>
+      <div class="legend-item"><span class="sd not-published"></span>Não publicado</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- STATS -->
+    <div class="stats-row" id="stats-row"></div>
+    <!-- HEADER -->
+    <div class="month-header">
+      <div class="month-nav-group">
+        <button class="month-nav-btn" onclick="navMonth(-1)">‹</button>
+        <button class="month-nav-btn" onclick="navMonth(1)">›</button>
+        <div class="month-title" id="month-title">Maio 2026</div>
+      </div>
+      <button id="add-post-btn" class="add-post-btn" onclick="openAddModal()">+ Adicionar Post</button>
+    </div>
+    <!-- FILTERS -->
+    <div class="platform-filters" id="platform-filters">
+      <button class="pf-btn active-all" data-pf="all" onclick="toggleFilter(this)">Todas</button>
+      <button class="pf-btn" data-pf="instagram" onclick="toggleFilter(this)"><div class="pf-dot" style="background:var(--ig)"></div>Instagram</button>
+      <button class="pf-btn" data-pf="tiktok" onclick="toggleFilter(this)"><div class="pf-dot" style="background:#555"></div>TikTok</button>
+      <button class="pf-btn" data-pf="youtube" onclick="toggleFilter(this)"><div class="pf-dot" style="background:var(--yt)"></div>YouTube</button>
+      <button class="pf-btn" data-pf="facebook" onclick="toggleFilter(this)"><div class="pf-dot" style="background:var(--fb)"></div>Facebook</button>
+      <button class="pf-btn" data-pf="twitter" onclick="toggleFilter(this)"><div class="pf-dot" style="background:var(--tw)"></div>Twitter/X</button>
+    </div>
+    <!-- CALENDAR -->
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+</div>
+
+<!-- ███ ADMIN ███ -->
+<div id="v-admin" class="view">
+  <nav id="navbar-admin" style="position:fixed;top:0;left:0;right:0;height:56px;z-index:100;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 20px;gap:12px">
+    <div class="nav-logo">
+      <svg class="nav-logo-icon" style="color:var(--gold)"><use href="#clvsn-sym"/></svg>
+      <span class="nav-logo-text">CLVSN</span>
+      <span style="font-size:10px;color:var(--dim);letter-spacing:1px">ADMIN</span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="nav-btn" onclick="showView('v-calendar')">← Calendário</button>
+      <button class="nav-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </nav>
+  <div class="admin-layout">
+    <div class="admin-inner">
+      <div class="admin-heading">Painel de Administração</div>
+      <div class="admin-sub">Gere a equipa, permissões e convites</div>
+      <div class="tabs-row">
+        <button class="tab-btn active" onclick="adminTab(this,'tab-team')">Equipa</button>
+        <button class="tab-btn" onclick="adminTab(this,'tab-invite')">Convidar</button>
+        <button class="tab-btn" onclick="adminTab(this,'tab-pending')">Convites Pendentes</button>
+      </div>
+      <div id="tab-team" class="tab-panel active">
+        <table class="data-table">
+          <thead><tr><th>Nome</th><th>Email</th><th>Cargo</th><th>Plataformas</th><th>Ações</th></tr></thead>
+          <tbody id="team-tbody"></tbody>
+        </table>
+      </div>
+      <div id="tab-invite" class="tab-panel">
+        <div class="invite-box">
+          <div style="font-size:15px;font-weight:700;margin-bottom:16px">Convidar membro</div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input id="inv-email" class="form-input" type="email" placeholder="email@exemplo.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cargo</label>
+            <select id="inv-role" class="form-input" style="background:var(--bg)">
+              <option value="member">Membro</option>
+              <option value="sub-admin">Sub-Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plataformas que pode gerir</label>
+            <div class="plat-checks">
+              <label class="plat-ck"><input type="checkbox" value="instagram"> <span class="ptag ig">Instagram</span></label>
+              <label class="plat-ck"><input type="checkbox" value="tiktok"> <span class="ptag tt">TikTok</span></label>
+              <label class="plat-ck"><input type="checkbox" value="youtube"> <span class="ptag yt">YouTube</span></label>
+              <label class="plat-ck"><input type="checkbox" value="facebook"> <span class="ptag fb">Facebook</span></label>
+              <label class="plat-ck"><input type="checkbox" value="twitter"> <span class="ptag tw">Twitter/X</span></label>
+            </div>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:9px 20px" onclick="sendInvite()">Enviar Convite</button>
+          <div id="invite-result" class="invite-result">
+            Convite criado! Partilha este link:
+            <div class="invite-link-row">
+              <input id="invite-link" class="invite-link-input" readonly>
+              <button class="copy-btn" onclick="copyInviteLink()">Copiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-pending" class="tab-panel">
+        <table class="data-table">
+          <thead><tr><th>Email</th><th>Cargo</th><th>Plataformas</th><th>Expira</th><th>Ações</th></tr></thead>
+          <tbody id="pending-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ███ MODAL: DAY VIEW ███ -->
+<div id="modal-day" class="overlay" onclick="closeOverlay(event,'modal-day')">
+  <div class="modal modal-lg" onclick="event.stopPropagation()" style="max-width:580px">
+    <div class="modal-header">
+      <div>
+        <div id="day-modal-date" style="font-size:18px;font-weight:700"></div>
+        <div id="day-modal-count" style="font-size:12px;color:var(--dim);margin-top:3px"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button id="day-add-btn" class="hidden" onclick="openAddFromDay()" style="padding:6px 14px;background:var(--gold);color:#001627;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">+ Adicionar</button>
+        <button class="modal-close" onclick="closeModal('modal-day')">×</button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:12px 22px 22px">
+      <div id="day-posts-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ███ MODAL: POST ███ -->
+<div id="modal-post" class="overlay" onclick="closeOverlay(event,'modal-post')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span id="pm-badge" class="platform-badge ig">Instagram</span>
+          <span id="pm-time" style="font-size:12px;color:var(--dim)">19:00</span>
+        </div>
+        <div id="pm-title" style="font-size:16px;font-weight:700">Título do post</div>
+        <div id="pm-date" style="font-size:11px;color:var(--dim);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-post')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-label">Ideia / Conceito</div>
+        <div id="pm-idea" style="font-size:13px;color:var(--silver);line-height:1.6;background:var(--bg);padding:10px 12px;border-radius:7px;border:1px solid var(--b1)"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-label">Copy</div>
+        <div class="lang-tabs">
+          <div class="lang-tab active" onclick="switchLang(this,'lang-pt')">PT</div>
+          <div class="lang-tab" onclick="switchLang(this,'lang-en')">EN</div>
+        </div>
+        <div id="lang-pt"><textarea id="pm-copy-pt" class="modal-input modal-textarea" placeholder="Copy em português..."></textarea></div>
+        <div id="lang-en" class="hidden"><textarea id="pm-copy-en" class="modal-input modal-textarea" placeholder="Copy in English..."></textarea></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-label">CTA</div>
+        <input id="pm-cta" class="modal-input" type="text" placeholder="Call to action...">
+      </div>
+      <div class="modal-section">
+        <div class="modal-label">Status</div>
+        <div class="status-btns">
+          <button class="sb active-planned" data-s="planned" onclick="selectStatus(this)">Planeado</button>
+          <button class="sb" data-s="scheduled" onclick="selectStatus(this)">Agendado</button>
+          <button class="sb" data-s="on-time" onclick="selectStatus(this)">Publicado ✓</button>
+          <button class="sb" data-s="late" onclick="selectStatus(this)">Publicado tarde</button>
+          <button class="sb" data-s="not-published" onclick="selectStatus(this)">Não publicado</button>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-label">Link do Post</div>
+        <input id="pm-link" class="modal-input" type="url" placeholder="https://...">
+        <div id="pm-link-err" class="link-err">Link inválido para esta plataforma.</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-label">Anexos / Ficheiros</div>
+        <div id="att-drop" class="att-drop" onclick="document.getElementById('att-input').click()">
+          <div class="att-drop-icon">📎</div>
+          <div class="att-drop-txt"><b>Clica</b> ou arrasta ficheiros para aqui</div>
+          <div class="att-drop-txt" style="margin-top:3px;font-size:10px;opacity:.7">Imagens, vídeos, PDF — máx. 8MB por ficheiro</div>
+        </div>
+        <input id="att-input" type="file" multiple class="hidden" onchange="handleAttachFiles(this.files)">
+        <div id="att-grid" class="att-grid"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-label">Notas Internas</div>
+        <textarea id="pm-notes" class="modal-input modal-textarea" style="min-height:56px" placeholder="Notas para a equipa..."></textarea>
+      </div>
+      <div id="pm-publisher" class="hidden" style="font-size:11px;color:var(--dim)">
+        Publicado por: <span id="pm-publisher-name" style="color:var(--silver)"></span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-post')">Cancelar</button>
+      <button class="btn-save" onclick="savePost()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ███ MODAL: ADD POST ███ -->
+<div id="modal-add" class="overlay" onclick="closeOverlay(event,'modal-add')">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:16px;font-weight:700">Adicionar Post</div>
+        <div id="add-day-label" style="font-size:12px;color:var(--dim);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-add')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="add-grid">
+        <div class="form-group">
+          <label class="form-label">Plataforma</label>
+          <select id="add-platform" class="modal-input" style="background:var(--bg)">
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="facebook">Facebook</option>
+            <option value="twitter">Twitter/X</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select id="add-type" class="modal-input" style="background:var(--bg)">
+            <option>Reel</option><option>Carrossel</option><option>Post</option>
+            <option>Story</option><option>Vídeo</option><option>Short</option><option>Tweet</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoria</label>
+          <select id="add-category" class="modal-input" style="background:var(--bg)">
+            <option value="educativo">Educativo</option>
+            <option value="bastidores">Bastidores</option>
+            <option value="processo">Processo</option>
+            <option value="erros-comuns">Erros Comuns</option>
+            <option value="dicas">Dicas</option>
+            <option value="storytelling">Storytelling</option>
+            <option value="prova-social">Prova Social</option>
+            <option value="tendencias">Tendências</option>
+            <option value="oferta">Oferta / Lead</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora</label>
+          <input id="add-time" class="modal-input" type="time" value="19:00">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Título (PT)</label>
+          <input id="add-title-pt" class="modal-input" type="text" placeholder="Título em português">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Título (EN)</label>
+          <input id="add-title-en" class="modal-input" type="text" placeholder="Title in English">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Ideia</label>
+          <textarea id="add-idea" class="modal-input modal-textarea" placeholder="Ideia / conceito do post..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Copy (PT)</label>
+          <textarea id="add-copy-pt" class="modal-input modal-textarea" placeholder="Copy em português..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">CTA</label>
+          <input id="add-cta" class="modal-input" type="text" placeholder="Call to action">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-add')">Cancelar</button>
+      <button class="btn-save" onclick="saveNewPost()">Adicionar Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- ███ MODAL: SETTINGS ███ -->
+<div id="modal-settings" class="overlay" onclick="closeOverlay(event,'modal-settings')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-size:16px;font-weight:700">Definições</div>
+      <button class="modal-close" onclick="closeModal('modal-settings')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <div class="settings-name-row">
+          <div id="set-avatar" class="settings-avatar">RC</div>
+          <div>
+            <div id="set-name" style="font-size:14px;font-weight:700">Rodrigo Constantino</div>
+            <div id="set-email" style="font-size:12px;color:var(--dim)">email@exemplo.com</div>
+            <span id="set-role" class="role-pill admin" style="margin-top:4px;display:inline-block">ADMIN</span>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="modal-label" style="margin-bottom:12px">Aparência</div>
+        <div class="settings-row">
+          <span class="settings-row-label">Dark Mode</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="theme-toggle" class="toggle-input" onchange="toggleTheme(this)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="modal-label" style="margin-bottom:12px">Idioma</div>
+        <div class="lang-btns">
+          <button id="lang-pt-btn" class="lang-btn active" onclick="setLang('pt',this)">Português</button>
+          <button id="lang-en-btn" class="lang-btn" onclick="setLang('en',this)">English</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="modal-label" style="margin-bottom:12px">Mudar Password</div>
+        <div class="form-group">
+          <label class="form-label">Password Atual</label>
+          <input id="set-old-pw" class="modal-input" type="password" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nova Password</label>
+          <input id="set-new-pw" class="modal-input" type="password" placeholder="Mínimo 8 caracteres">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Nova Password</label>
+          <input id="set-pw2" class="modal-input" type="password" placeholder="Repetir password">
+          <div id="set-pw-err" class="err-msg"></div>
+          <div id="set-pw-ok" class="success-msg">Password atualizada com sucesso!</div>
+        </div>
+        <button class="btn-save" style="font-size:12px;padding:7px 16px" onclick="changePassword()">Atualizar Password</button>
+      </div>
+      <div class="settings-section">
+        <div class="modal-label" style="margin-bottom:12px">Mudar Telemóvel</div>
+        <div class="phone-row" style="max-width:280px">
+          <select id="set-country" class="modal-input" style="flex:0 0 100px;background:var(--bg)">
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+381">🇷🇸 +381</option>
+          </select>
+          <input id="set-phone" class="modal-input" type="tel" placeholder="912 345 678">
+        </div>
+        <button class="btn-save" style="font-size:12px;padding:7px 16px;margin-top:8px" onclick="changePhone()">Guardar</button>
+        <div id="set-phone-ok" class="success-msg">Telemóvel atualizado!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ███ MODAL: EDIT USER ███ -->
+<div id="modal-edit-user" class="overlay" onclick="closeOverlay(event,'modal-edit-user')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-size:16px;font-weight:700">Editar Utilizador</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-user')">×</button>
+    </div>
+    <div class="modal-body">
+      <input id="eu-id" type="hidden">
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <div id="eu-name" style="font-size:14px;font-weight:600;color:var(--text)"></div>
+        <div id="eu-email" style="font-size:12px;color:var(--dim)"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cargo</label>
+        <select id="eu-role" class="modal-input" style="background:var(--bg)">
+          <option value="member">Membro</option>
+          <option value="sub-admin">Sub-Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plataformas</label>
+        <div class="plat-checks" id="eu-platforms">
+          <label class="plat-ck"><input type="checkbox" value="instagram" id="eu-ig"> <span class="ptag ig">Instagram</span></label>
+          <label class="plat-ck"><input type="checkbox" value="tiktok" id="eu-tt"> <span class="ptag tt">TikTok</span></label>
+          <label class="plat-ck"><input type="checkbox" value="youtube" id="eu-yt"> <span class="ptag yt">YouTube</span></label>
+          <label class="plat-ck"><input type="checkbox" value="facebook" id="eu-fb"> <span class="ptag fb">Facebook</span></label>
+          <label class="plat-ck"><input type="checkbox" value="twitter" id="eu-tw"> <span class="ptag tw">Twitter/X</span></label>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn-ghost" style="color:var(--red);border-color:rgba(239,68,68,.3)" onclick="removeUser()">Remover</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost" onclick="closeModal('modal-edit-user')">Cancelar</button>
+        <button class="btn-save" onclick="saveUserEdit()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════
+const ADMIN_EMAILS = ['ccloth.vision@gmail.com','carros16031970@gmail.com'];
+const DEFAULT_USERS = [
+  {id:'u1',email:'ccloth.vision@gmail.com',password:'PAP',firstName:'Rodrigo',lastName:'Constantino',phone:'+351910000001',role:'admin',platforms:['instagram','tiktok','youtube','facebook','twitter']},
+  {id:'u2',email:'carros16031970@gmail.com',password:'PAP',firstName:'Admin',lastName:'CLVSN',phone:'+351910000002',role:'admin',platforms:['instagram','tiktok','youtube','facebook','twitter']}
+];
+const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WEEKDAYS_PT = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const PLATFORM_DOMAINS = {instagram:'instagram.com',tiktok:'tiktok.com',youtube:'youtube.com',facebook:'facebook.com',twitter:['twitter.com','x.com']};
+const PLATFORM_SHORT = {instagram:'ig',tiktok:'tt',youtube:'yt',facebook:'fb',twitter:'tw'};
+const HOLIDAYS = {
+  '2026-05-01':'Dia do Trabalhador','2026-05-10':'Dia da Mãe',
+  '2026-06-10':'Dia de Portugal','2026-06-13':'Santo António',
+  '2026-08-15':'Assunção de Maria','2026-10-05':'República',
+  '2026-10-31':'Halloween','2026-11-01':'Todos os Santos',
+  '2026-11-27':'Black Friday','2026-12-01':'Restauração',
+  '2026-12-08':'Imaculada Conceição','2026-12-25':'Natal',
+  '2026-12-31':'Véspera de Ano Novo'
+};
+
+// Content bank per platform
+const CONTENT = {
+  instagram: [
+    ['3 erros que estão a matar a tua marca de roupa','A maioria das marcas falha não por falta de produto, mas por falta de estratégia. Aqui estão os 3 maiores erros.'],
+    ['Como criar um feed que realmente vende','O teu Instagram é a montra da tua marca. Aprende a criar uma presença visual que converte.'],
+    ['Bastidores: criámos uma identidade de marca do zero','Um dia completo de trabalho — da pesquisa ao resultado final.'],
+    ['5 pilares de uma identidade visual forte','Cor, tipografia, tom, consistência e propósito. Sem isto, a tua marca é invisível.'],
+    ['Case study: +43% de engagement em 30 dias','Como transformámos a presença digital de uma marca de streetwear emergente.'],
+    ['O que faz uma marca de moda crescer em 2026','Tendências, algoritmos e estratégia. O que realmente importa agora.'],
+    ['Diagnóstico gratuito para a tua marca','Descobrimos onde a tua marca está a perder dinheiro. Fala connosco.'],
+    ['Tutorial: como criar reels que chegam a novos públicos','Estrutura, duração, hooks — tudo o que precisas de saber.'],
+    ['Prova social: os resultados falam por si','De 200 para 8.000 seguidores orgânicos em 3 meses. Aqui está como.'],
+    ['A tua marca tem personalidade?','A identidade não é apenas o logo. É como a tua marca fala, age e se apresenta.']
+  ],
+  tiktok: [
+    ['Tutorial rápido: identidade visual em 60 segundos','Os 5 elementos que toda a marca de roupa precisa. Simples e direto.'],
+    ['O segredo das marcas de moda que crescem no TikTok','Não é sorte. É estratégia. Aqui está o que estão a fazer diferente.'],
+    ['Day in a life: um dia na CLVSN','Bastidores completos de uma sessão de estratégia para uma marca emergente.'],
+    ['Erros que 90% das marcas cometem no Instagram','Vemos isso todos os dias. Não sejas mais um.'],
+    ['Como escrever um bio que converte','6 segundos para convencer alguém a seguir-te. Aqui está a fórmula.'],
+    ['Tendência: o estilo que está a dominar em 2026','O que está a crescer no mercado da moda e como a tua marca pode aproveitar.'],
+    ['Processo: de ideia a conteúdo em 20 minutos','O nosso workflow para criar conteúdo consistente sem perder horas.'],
+    ['Pergunta: a tua marca tem um posicionamento claro?','Se não consegues explicar em 10 segundos, temos um problema.'],
+    ['Antes e depois: esta marca mudou tudo','O mesmo produto. Comunicação completamente diferente. Os resultados são surpreendentes.'],
+    ['Como escolher o teu nicho no mercado da moda','Demasiadas marcas tentam chegar a toda a gente. É o maior erro que podes cometer.']
+  ],
+  youtube: [
+    ['Como construir uma marca de roupa do zero em 2026 — Guia completo','Tudo o que precisas de saber: identidade, plataformas, conteúdo, vendas. O guia definitivo.'],
+    ['Estratégia de redes sociais para marcas de moda — o que realmente funciona','Análise profunda das estratégias que estão a gerar resultados reais para marcas emergentes.'],
+    ['Case study: de 0 a 10k seguidores em 90 dias','Acompanha o processo completo de crescimento de uma marca de streetwear. Transparência total.'],
+    ['Identidade visual para marcas de roupa — tudo o que precisas saber','Da paleta de cores ao tom de comunicação. Como criar uma marca reconhecível e consistente.']
+  ],
+  facebook: [
+    ['A CLVSN está a ajudar marcas de roupa a crescer digitalmente','Trabalhamos com marcas emergentes e em crescimento. Gestão de redes sociais, identidade e estratégia.'],
+    ['Uma marca sem presença digital é uma marca invisível','Em 2026, não estar nas redes sociais é perder vendas. Ajudamo-te a mudar isso.'],
+    ['Os nossos serviços para a tua marca de roupa','Gestão de redes sociais, criação de conteúdo, estratégia de marca e crescimento online.'],
+    ['Resultado real: +28% de engagement em menos de 30 dias','É isto que a estratégia certa faz pela tua marca. Quiseres o mesmo? Fala connosco.'],
+    ['Porquê escolher a CLVSN para a tua marca','Somos especialistas em marketing para marcas de moda. Resultados reais, estratégia clara.'],
+    ['Como começar a trabalhar connosco','1. Contacta-nos. 2. Diagnóstico gratuito. 3. Estratégia personalizada. 4. Crescimento.']
+  ],
+  twitter: [
+    ['a tua marca é boa. o problema é que ninguém sabe.','Falta de estratégia digital custa clientes todos os dias.'],
+    ['qual é o maior erro que já viste uma marca de roupa cometer?','— sem identidade — sem consistência — sem estratégia. escolhe o teu.'],
+    ['thread: 5 razões pelas quais a tua marca não está a crescer','vês o conteúdo dos outros e pensas "porque é que funciona para eles mas não para mim?"'],
+    ['a diferença entre uma marca que vende e uma que não vende','não é o produto. é a comunicação.'],
+    ['sabes quanto dinheiro estás a perder sem estratégia digital?','spoiler: mais do que pensas.'],
+    ['hot take: maioria das marcas de roupa não precisam de mais seguidores','precisam de melhor estratégia com os que já têm.'],
+    ['a CLVSN hoje: 3 reuniões de estratégia, 1 identidade criada, 2 marcas relançadas','um dia normal por cá.'],
+    ['pergunta genuína: o que impede a tua marca de crescer?','responde nos comentários. vamos falar sobre isso.']
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+// Data atual segundo o fuso horário de Portugal (Europe/Lisbon)
+function lisbonNow() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const o = {}; parts.forEach(p => o[p.type] = p.value);
+  return { y: +o.year, m: +o.month, d: +o.day };
+}
+const _LX = lisbonNow();
+let CY = _LX.y, CM = _LX.m; // ano/mês atual (hora de Portugal)
+let activeFilters = []; // empty = all
+let searchQ = '';
+let currentPostId = null;
+let addDay = 1;
+
+// ═══════════════════════════════════════════════════════════
+// CLOUD (Supabase Storage) — anexos na nuvem
+// Para ativar: cria um projeto Supabase + bucket público "calendar-files"
+// e cola aqui o URL e a CHAVE PÚBLICA (anon/publishable — NUNCA a secreta).
+// Enquanto estiver "YOUR-...", o calendário guarda os anexos no browser.
+// ═══════════════════════════════════════════════════════════
+const SUPA = {
+  url: 'https://dgppjyumexrwilkekety.supabase.co',
+  key: 'sb_publishable_buiS1_ZQlQ9ykslx1nuy_A_-CY2T4YN',
+  bucket: 'calendar-files'
+};
+const CLOUD_ON = SUPA.url.startsWith('https://') && !SUPA.url.includes('YOUR-') && !SUPA.key.includes('YOUR-');
+
+function safeName(name) {
+  return name.replace(/[^\w.\-]+/g, '_').replace(/_+/g, '_').slice(-80);
+}
+
+async function cloudUpload(file) {
+  const path = `${Date.now()}_${Math.round(performance.now())}_${safeName(file.name)}`;
+  const res = await fetch(`${SUPA.url}/storage/v1/object/${SUPA.bucket}/${path}`, {
+    method: 'POST',
+    headers: { apikey: SUPA.key, Authorization: `Bearer ${SUPA.key}`, 'x-upsert': 'true', 'Content-Type': file.type || 'application/octet-stream' },
+    body: file
+  });
+  if (!res.ok) throw new Error('Upload falhou: ' + (await res.text()));
+  return { path, url: `${SUPA.url}/storage/v1/object/public/${SUPA.bucket}/${path}` };
+}
+
+async function cloudDelete(path) {
+  if (!path) return;
+  try {
+    await fetch(`${SUPA.url}/storage/v1/object/${SUPA.bucket}/${path}`, {
+      method: 'DELETE',
+      headers: { apikey: SUPA.key, Authorization: `Bearer ${SUPA.key}` }
+    });
+  } catch (e) { /* silencioso */ }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STORAGE HELPERS
+// ═══════════════════════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem('clvsn_'+k)) } catch(e) { return null } },
+  set: (k,v) => localStorage.setItem('clvsn_'+k, JSON.stringify(v)),
+  users: () => LS.get('users') || [],
+  saveUsers: u => LS.set('users', u),
+  session: () => LS.get('session'),
+  setSession: s => LS.set('session', s),
+  clearSession: () => localStorage.removeItem('clvsn_session'),
+  posts: () => LS.get('posts') || {},
+  savePosts: p => LS.set('posts', p),
+  invites: () => LS.get('invites') || [],
+  saveInvites: i => LS.set('invites', i),
+  prefs: () => LS.get('prefs') || {theme:'dark',lang:'pt'},
+  savePrefs: p => LS.set('prefs', p)
+};
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR DATA GENERATION
+// ═══════════════════════════════════════════════════════════
+function generatePosts(year, month) {
+  const days = new Date(year, month, 0).getDate();
+  const posts = [];
+  let pid = 0;
+
+  function addPost(day, platform, type, category, contentIdx, time, isStory) {
+    const pool = CONTENT[platform];
+    const item = pool[contentIdx % pool.length];
+    const holiday = HOLIDAYS[`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`];
+    let titlePt = item[0];
+    let ideaPt = item[1];
+    if (holiday && Math.random() > 0.5) {
+      titlePt = `${holiday}: ${titlePt.toLowerCase()}`;
+    }
+    posts.push({
+      id: `${year}-${month}-${day}-${pid++}`,
+      year, month, day,
+      dateStr: `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,
+      platform, type, category, time,
+      titlePt, titleEn: titlePt,
+      ideaPt, ideaEn: ideaPt,
+      copyPt: '', copyEn: '', cta: '',
+      status: 'planned', link: '', notes: '',
+      isStory: !!isStory, publishedBy: ''
+    });
+  }
+
+  for (let day = 1; day <= days; day++) {
+    const dow = new Date(year, month-1, day).getDay(); // 0=Sun,1=Mon...6=Sat
+    const ci = (day + month * 3); // deterministic content index
+
+    // INSTAGRAM stories every day
+    addPost(day, 'instagram', 'Story', 'bastidores', ci, '09:00', true);
+    addPost(day, 'instagram', 'Story', 'educativo', ci+1, '13:00', true);
+    addPost(day, 'instagram', 'Story', 'prova-social', ci+2, '20:00', true);
+
+    // TWITTER most days
+    if (dow >= 1 && dow <= 5) {
+      addPost(day, 'twitter', 'Tweet', 'educativo', ci, '10:00');
+      addPost(day, 'twitter', 'Tweet', 'tendencias', ci+3, '17:00');
+    } else {
+      addPost(day, 'twitter', 'Tweet', 'storytelling', ci+1, '12:00');
+    }
+
+    // INSTAGRAM posts: Mon/Wed/Fri/Sat
+    if (dow === 1) addPost(day, 'instagram', 'Reel', 'educativo', ci, '19:00');
+    if (dow === 3) addPost(day, 'instagram', 'Carrossel', 'dicas', ci, '12:00');
+    if (dow === 5) addPost(day, 'instagram', 'Post', 'prova-social', ci, '19:00');
+    if (dow === 6) addPost(day, 'instagram', 'Reel', 'tendencias', ci, '12:00');
+
+    // TIKTOK: Mon/Tue/Thu/Fri/Sat
+    if ([1,2,4,5,6].includes(dow)) addPost(day, 'tiktok', 'Vídeo', ci%2===0?'educativo':'bastidores', ci, dow===6?'18:00':'21:00');
+
+    // YOUTUBE: long Thu, shorts Tue+Fri
+    if (dow === 4) addPost(day, 'youtube', 'Vídeo Longo', 'educativo', ci%4, '18:00');
+    if (dow === 2) addPost(day, 'youtube', 'Short', 'dicas', ci%4, '12:00');
+    if (dow === 5) addPost(day, 'youtube', 'Short', 'tendencias', (ci+1)%4, '12:00');
+
+    // FACEBOOK: Mon/Wed/Fri
+    if ([1,3,5].includes(dow)) addPost(day, 'facebook', 'Post', ci%2===0?'educativo':'prova-social', ci%6, '12:00');
+  }
+
+  return posts;
+}
+
+function ensureMonthPosts(year, month) {
+  const all = LS.posts();
+  const key = `${year}-${String(month).padStart(2,'0')}`;
+  if (!all[key]) {
+    all[key] = generatePosts(year, month);
+    LS.savePosts(all);
+  }
+  return all[key];
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', function() {
+  // Seed users
+  let users = LS.users();
+  DEFAULT_USERS.forEach(du => {
+    const existing = users.find(u => u.email === du.email);
+    if (!existing) { users.push({...du}); }
+    else { existing.password = du.password; } // força sincronizar password dos admins por defeito
+  });
+  LS.saveUsers(users);
+
+  // Apply saved prefs
+  const prefs = LS.prefs();
+  applyTheme(prefs.theme || 'dark');
+
+  // Check URL for self-contained invite
+  const params = new URLSearchParams(location.search);
+  const inviteB64 = params.get('invite');
+  if (inviteB64) {
+    try {
+      const inv = JSON.parse(atob(inviteB64));
+      if (inv.exp > Date.now()) {
+        sessionStorage.setItem('invite_data', JSON.stringify(inv));
+        // Clean URL without reloading
+        history.replaceState(null,'',location.pathname);
+      }
+    } catch(e) { /* invalid invite param */ }
+  }
+
+  // If invite detected, go straight to signup
+  if (sessionStorage.getItem('invite_data')) {
+    setTimeout(() => showView('v-signup'), 1500);
+    return;
+  }
+
+  // Loading → auth check
+  setTimeout(function() {
+    const sess = LS.session();
+    if (sess) {
+      startApp(sess);
+    } else {
+      showView('v-login');
+    }
+  }, 1500);
+});
+
+function startApp(sess) {
+  const prefs = LS.prefs();
+  LANG = prefs.lang || 'pt';
+  updateNavbar(sess);
+  // Arranca no mês atual (hora de Portugal) e pré-gera os 12 meses do ano corrente
+  const lx = lisbonNow();
+  CY = lx.y; CM = lx.m;
+  for (let m = 1; m <= 12; m++) ensureMonthPosts(CY, m);
+  renderSidebar();
+  renderCalendar();
+  applyLang();
+  showView('v-calendar');
+}
+
+// ═══════════════════════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════════════════════
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (id === 'v-signup') prefillSignupFromInvite();
+  if (id === 'v-admin') { renderTeam(); renderPending(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-err');
+  const users = LS.users();
+  const user = users.find(u => u.email.toLowerCase() === email && u.password === pw);
+  if (!user) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  const sess = {userId:user.id, email:user.email, role:user.role, firstName:user.firstName, lastName:user.lastName};
+  LS.setSession(sess);
+  startApp(sess);
+}
+
+function onSignupEmail(val) {
+  const admin = ADMIN_EMAILS.includes(val.toLowerCase());
+  document.getElementById('su-admin-badge').classList.toggle('show', admin);
+}
+
+function prefillSignupFromInvite() {
+  const raw = sessionStorage.getItem('invite_data');
+  if (!raw) return;
+  try {
+    const inv = JSON.parse(raw);
+    const emailInput = document.getElementById('su-email');
+    emailInput.value = inv.email;
+    emailInput.readOnly = true;
+    emailInput.style.opacity = '0.65';
+    emailInput.style.cursor = 'not-allowed';
+    const badge = document.getElementById('su-invite-badge');
+    badge.innerHTML = `🔗 Convite para <strong>${inv.email}</strong> — Cargo: <strong>${inv.role === 'sub-admin' ? 'Sub-Admin' : 'Membro'}</strong>`;
+    badge.classList.add('show');
+  } catch(e) {}
+}
+
+function doSignup() {
+  const fname = document.getElementById('su-fname').value.trim();
+  const lname = document.getElementById('su-lname').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const country = document.getElementById('su-country').value;
+  const phone = document.getElementById('su-phone').value.trim();
+  const pw = document.getElementById('su-pw').value;
+  const pw2 = document.getElementById('su-pw2').value;
+  const err = document.getElementById('su-err');
+
+  const isAdmin = ADMIN_EMAILS.includes(email);
+
+  // Decode self-contained invite from sessionStorage
+  let invite = null;
+  const raw = sessionStorage.getItem('invite_data');
+  if (raw) {
+    try {
+      const inv = JSON.parse(raw);
+      if (inv.exp > Date.now()) invite = inv;
+    } catch(e) {}
+  }
+
+  if (!isAdmin && !invite) {
+    err.textContent = 'Precisas de um convite válido para te registares.';
+    err.classList.add('show'); return;
+  }
+  if (invite && invite.email && invite.email.toLowerCase() !== email) {
+    err.textContent = `Este convite é para ${invite.email}. Usa o email correto.`;
+    err.classList.add('show'); return;
+  }
+  if (!fname || !lname) { err.textContent = 'Preenche o nome e apelido.'; err.classList.add('show'); return; }
+  if (pw.length < 8) { err.textContent = 'A password deve ter pelo menos 8 caracteres.'; err.classList.add('show'); return; }
+  if (pw !== pw2) { err.textContent = 'As passwords não coincidem.'; err.classList.add('show'); return; }
+
+  const users = LS.users();
+  if (users.find(u => u.email.toLowerCase() === email)) {
+    err.textContent = 'Este email já está registado.'; err.classList.add('show'); return;
+  }
+
+  err.classList.remove('show');
+  const role = isAdmin ? 'admin' : (invite ? invite.role : 'member');
+  const platforms = isAdmin ? ['instagram','tiktok','youtube','facebook','twitter'] : (invite ? invite.platforms : []);
+  const newUser = {id:'u'+Date.now(), email, password:pw, firstName:fname, lastName:lname, phone:country+phone, role, platforms};
+  users.push(newUser);
+  LS.saveUsers(users);
+  sessionStorage.removeItem('invite_data');
+
+  const sess = {userId:newUser.id, email:newUser.email, role:newUser.role, firstName:newUser.firstName, lastName:newUser.lastName};
+  LS.setSession(sess);
+  startApp(sess);
+}
+
+function doLogout() {
+  LS.clearSession();
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pw').value = '';
+  showView('v-login');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVBAR
+// ═══════════════════════════════════════════════════════════
+function updateNavbar(sess) {
+  const initials = (sess.firstName[0]||'') + (sess.lastName[0]||'');
+  document.getElementById('nav-avatar').textContent = initials.toUpperCase();
+  document.getElementById('nav-username').textContent = sess.firstName + ' ' + sess.lastName;
+  const roleEl = document.getElementById('nav-role');
+  roleEl.textContent = sess.role.toUpperCase().replace('-',' ');
+  roleEl.className = 'role-pill ' + sess.role;
+  const adminBtn = document.getElementById('admin-nav-btn');
+  if (sess.role === 'admin' || sess.role === 'sub-admin') adminBtn.classList.remove('hidden');
+  else adminBtn.classList.add('hidden');
+  const addBtn = document.getElementById('add-post-btn');
+  if (sess.role === 'admin' || sess.role === 'sub-admin') addBtn.classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
+function renderSidebar() {
+  const t = I18N[LANG] || I18N.pt;
+  const ml = document.getElementById('month-list');
+  const now = lisbonNow();
+  ml.innerHTML = t.months.map((m,i) => {
+    const mn = i+1;
+    const isCurrent = (CY === now.y && mn === now.m);
+    const isPast = (CY < now.y) || (CY === now.y && mn < now.m);
+    const state = isCurrent ? 'm-current' : (isPast ? 'm-past' : 'm-future');
+    const isActive = (mn === CM); // mês selecionado/em vista
+    return `<div class="month-item ${state}${isActive?' active':''}" onclick="goMonth(${mn})">${m}<div class="m-dot"></div></div>`;
+  }).join('');
+}
+
+function goMonth(m) {
+  CM = m;
+  renderSidebar();
+  renderCalendar();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR RENDER
+// ═══════════════════════════════════════════════════════════
+function renderCalendar() {
+  const t = I18N[LANG] || I18N.pt;
+  document.getElementById('month-title').textContent = t.months[CM-1] + ' ' + CY;
+  renderStats();
+  renderGrid();
+}
+
+function navMonth(dir) {
+  CM += dir;
+  if (CM > 12) { CM = 1; CY++; }
+  if (CM < 1) { CM = 12; CY--; }
+  renderSidebar();
+  renderCalendar();
+}
+
+function renderStats() {
+  const t = I18N[LANG] || I18N.pt;
+  const posts = ensureMonthPosts(CY, CM);
+  const stats = {instagram:0, tiktok:0, youtube:0, facebook:0, twitter:0};
+  const totals = {instagram:0, tiktok:0, youtube:0, facebook:0, twitter:0};
+  posts.forEach(p => {
+    if (!p.isStory) {
+      totals[p.platform] = (totals[p.platform]||0)+1;
+      if (p.status === 'on-time' || p.status === 'late') stats[p.platform] = (stats[p.platform]||0)+1;
+    }
+  });
+  const labels = {instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',facebook:'Facebook',twitter:'Twitter/X'};
+  const colors = {instagram:'var(--ig)',tiktok:'#555',youtube:'var(--yt)',facebook:'var(--fb)',twitter:'var(--tw)'};
+  const row = document.getElementById('stats-row');
+  row.innerHTML = Object.keys(stats).map(p => {
+    const pct = totals[p] > 0 ? Math.round((stats[p]/totals[p])*100) : 0;
+    return `<div class="stat-card">
+      <div class="stat-card-label"><div class="stat-dot" style="background:${colors[p]}"></div>${labels[p]}</div>
+      <div class="stat-nums">${stats[p]}<span>/${totals[p]}</span></div>
+      <div class="stat-sub">${t.stats_pub}</div>
+      <div class="stat-bar"><div class="stat-fill" style="background:${colors[p]};width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderGrid() {
+  const posts = ensureMonthPosts(CY, CM);
+  const days = new Date(CY, CM, 0).getDate();
+  const firstDow = new Date(CY, CM-1, 1).getDay();
+  const offset = firstDow === 0 ? 6 : firstDow - 1;
+  const today = lisbonNow();
+  const grid = document.getElementById('cal-grid');
+
+  const t = I18N[LANG] || I18N.pt;
+  let html = t.weekdays.map(d => `<div class="cal-weekday">${d}</div>`).join('');
+  for (let i = 0; i < offset; i++) html += '<div class="cal-day other-month"><div class="day-num"></div></div>';
+
+  for (let day = 1; day <= days; day++) {
+    const dateStr = `${CY}-${String(CM).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = today.y===CY && today.m===CM && today.d===day;
+    const holiday = HOLIDAYS[dateStr];
+    const dayPosts = posts.filter(p => p.day === day);
+
+    // Apply current filters
+    const visible = dayPosts.filter(p => {
+      const pf = activeFilters.length === 0 || activeFilters.includes(p.platform);
+      const sf = !searchQ || (p.titlePt||'').toLowerCase().includes(searchQ) || (p.ideaPt||'').toLowerCase().includes(searchQ);
+      return pf && sf;
+    });
+
+    const shown = visible.slice(0, 4);
+    const extra = visible.length - shown.length;
+
+    html += `<div class="cal-day${isToday?' today':''}" onclick="handleDayClick(event,${day})">`;
+    html += `<div class="day-num">${day}</div>`;
+    if (holiday) html += `<div class="holiday-chip" title="${holiday}">📅 ${holiday}</div>`;
+    shown.forEach((p,idx) => {
+      const cls = PLATFORM_SHORT[p.platform] || '';
+      const sc = p.status || 'planned';
+      html += `<div class="pc ${cls}${p.isStory?' story':''}" style="animation-delay:${idx*0.04}s" onclick="event.stopPropagation();openPostModal('${p.id}')">
+        <span class="sd ${sc}"></span>${p.type} · ${p.titlePt.substring(0,28)}${p.titlePt.length>28?'…':''}
+      </div>`;
+    });
+    if (extra > 0) html += `<div class="more-posts" onclick="event.stopPropagation()">+${extra} mais</div>`;
+    html += '</div>';
+  }
+
+  grid.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILTERS & SEARCH
+// ═══════════════════════════════════════════════════════════
+function toggleFilter(btn) {
+  const pf = btn.dataset.pf;
+  // Remove all active classes
+  document.querySelectorAll('.pf-btn').forEach(b => {
+    b.className = b.className.replace(/active-\w+/g,'').trim();
+  });
+
+  if (pf === 'all') {
+    activeFilters = [];
+    btn.classList.add('active-all');
+  } else {
+    const idx = activeFilters.indexOf(pf);
+    if (idx > -1) activeFilters.splice(idx, 1);
+    else activeFilters.push(pf);
+
+    if (activeFilters.length === 0) {
+      document.querySelector('[data-pf="all"]').classList.add('active-all');
+    } else {
+      activeFilters.forEach(f => {
+        const b = document.querySelector(`[data-pf="${f}"]`);
+        if (b) b.classList.add('active-' + PLATFORM_SHORT[f]);
+      });
+    }
+  }
+  renderGrid();
+}
+
+function doSearch(q) {
+  searchQ = q.trim().toLowerCase();
+  renderGrid();
+}
+
+function handleDayClick(e, day) {
+  openDayModal(day);
+}
+
+function openDayModal(day) {
+  addDay = day;
+  const t = I18N[LANG] || I18N.pt;
+  const dateStr = `${CY}-${String(CM).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const holiday = HOLIDAYS[dateStr];
+  const sess = LS.session();
+  const isAdmin = sess && (sess.role === 'admin' || sess.role === 'sub-admin');
+
+  // Header
+  const weekday = new Date(CY, CM-1, day).toLocaleDateString(LANG==='en'?'en-GB':'pt-PT', {weekday:'long'});
+  const titleParts = [weekday.charAt(0).toUpperCase()+weekday.slice(1), `, ${day} ${LANG==='en'?'of':'de'} ${t.months[CM-1]} ${CY}`];
+  document.getElementById('day-modal-date').textContent = titleParts.join('');
+  if (holiday) document.getElementById('day-modal-date').textContent += `  🎉 ${holiday}`;
+
+  // Show/hide add button
+  const addBtn = document.getElementById('day-add-btn');
+  if (isAdmin) addBtn.classList.remove('hidden');
+  else addBtn.classList.add('hidden');
+
+  // Get posts for this day
+  const posts = ensureMonthPosts(CY, CM).filter(p => p.day === day);
+
+  // Apply active filters
+  const filtered = posts.filter(p => activeFilters.length === 0 || activeFilters.includes(p.platform));
+  const countEl = document.getElementById('day-modal-count');
+  countEl.textContent = filtered.length === 0
+    ? (LANG==='en' ? 'No posts for this day' : 'Sem posts para este dia')
+    : `${filtered.length} ${filtered.length===1 ? (LANG==='en'?'post':'post') : (LANG==='en'?'posts':'posts')}`;
+
+  // Build grouped list by platform
+  const order = ['instagram','tiktok','youtube','facebook','twitter'];
+  const grouped = {};
+  filtered.forEach(p => {
+    if (!grouped[p.platform]) grouped[p.platform] = [];
+    grouped[p.platform].push(p);
+  });
+  // Sort each group by time
+  Object.values(grouped).forEach(arr => arr.sort((a,b) => a.time.localeCompare(b.time)));
+
+  const platLabels = {instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',facebook:'Facebook',twitter:'Twitter/X'};
+  const platColors = {instagram:'var(--ig)',tiktok:'#888',youtube:'var(--yt)',facebook:'var(--fb)',twitter:'var(--tw)'};
+  const statusLabels = {planned:LANG==='en'?'Planned':'Planeado', scheduled:LANG==='en'?'Scheduled':'Agendado',
+    'on-time':LANG==='en'?'Published ✓':'Publicado ✓', late:LANG==='en'?'Late':'Tarde', 'not-published':LANG==='en'?'Not published':'Não publicado'};
+  const statusColors = {planned:'var(--dim)',scheduled:'var(--blue)','on-time':'var(--green)',late:'var(--yellow)','not-published':'var(--red)'};
+
+  const listEl = document.getElementById('day-posts-list');
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="day-empty"><div class="day-empty-icon">📭</div><div>${LANG==='en'?'No posts scheduled for this day':'Sem posts planeados para este dia'}</div>${isAdmin?`<div style="margin-top:12px"><button onclick="openAddFromDay()" style="padding:8px 18px;background:var(--gold);color:#001627;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">+ ${LANG==='en'?'Add Post':'Adicionar Post'}</button></div>`:''}</div>`;
+    openModal('modal-day');
+    return;
+  }
+
+  let html = '';
+  order.forEach(platform => {
+    if (!grouped[platform] || grouped[platform].length === 0) return;
+    const posts = grouped[platform];
+    html += `<div class="day-plat-group">
+      <div class="day-plat-header">
+        <div style="width:10px;height:10px;border-radius:50%;background:${platColors[platform]};flex-shrink:0"></div>
+        <div class="day-plat-name" style="color:${platColors[platform]}">${platLabels[platform]}</div>
+        <div style="font-size:11px;color:var(--dim);margin-left:auto">${posts.length} ${posts.length===1?'post':'posts'}</div>
+      </div>`;
+    posts.forEach(p => {
+      const st = p.status || 'planned';
+      const stLabel = statusLabels[st] || st;
+      const stColor = statusColors[st] || 'var(--dim)';
+      html += `<div class="day-post-item" onclick="closeModal('modal-day');setTimeout(()=>openPostModal('${p.id}'),120)">
+        <div class="day-post-time">${p.time}</div>
+        <div class="day-post-info">
+          <div class="day-post-title">${p.titlePt}${p.isStory?'<span class="day-story-badge">Story</span>':''}</div>
+          <div class="day-post-meta">${p.type} · ${p.category||''}${p.copyPt?` · <span style="color:var(--green)">✓ copy</span>`:''}${p.attachments&&p.attachments.length?` · <span style="color:var(--gold)">📎 ${p.attachments.length}</span>`:''}</div>
+        </div>
+        <div class="day-post-status">
+          <span style="width:8px;height:8px;border-radius:50%;background:${stColor};display:inline-block"></span>
+          <span style="color:${stColor}">${stLabel}</span>
+          <span style="color:var(--dim);font-size:14px">›</span>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  listEl.innerHTML = html;
+  openModal('modal-day');
+}
+
+function openAddFromDay() {
+  const t = I18N[LANG] || I18N.pt;
+  document.getElementById('add-day-label').textContent = `${addDay} ${LANG==='en'?'of':'de'} ${t.months[CM-1]} ${CY}`;
+  closeModal('modal-day');
+  setTimeout(() => openModal('modal-add'), 120);
+}
+
+// ═══════════════════════════════════════════════════════════
+// POST MODAL
+// ═══════════════════════════════════════════════════════════
+function openPostModal(postId) {
+  const all = LS.posts();
+  const key = `${CY}-${String(CM).padStart(2,'0')}`;
+  const posts = all[key] || [];
+  const p = posts.find(x => x.id === postId);
+  if (!p) return;
+  currentPostId = postId;
+
+  const cls = PLATFORM_SHORT[p.platform] || '';
+  const labels = {instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',facebook:'Facebook',twitter:'Twitter/X'};
+  const badge = document.getElementById('pm-badge');
+  badge.textContent = labels[p.platform];
+  badge.className = 'platform-badge ' + cls;
+  document.getElementById('pm-time').textContent = p.type + ' · ' + p.time;
+  document.getElementById('pm-title').textContent = p.titlePt;
+  const t = I18N[LANG] || I18N.pt;
+  document.getElementById('pm-date').textContent = `${p.day} ${LANG==='en'?'of':' de'} ${t.months[CM-1]} ${CY}`;
+  document.getElementById('pm-idea').textContent = p.ideaPt || '—';
+  document.getElementById('pm-copy-pt').value = p.copyPt || '';
+  document.getElementById('pm-copy-en').value = p.copyEn || '';
+  document.getElementById('pm-cta').value = p.cta || '';
+  document.getElementById('pm-link').value = p.link || '';
+  document.getElementById('pm-notes').value = p.notes || '';
+  document.getElementById('pm-link-err').classList.remove('show');
+
+  // Status buttons
+  document.querySelectorAll('.sb').forEach(b => {
+    const base = 'sb';
+    b.className = base + (b.dataset.s === (p.status||'planned') ? ' active-'+(p.status||'planned') : '');
+  });
+
+  // Publisher
+  const pubEl = document.getElementById('pm-publisher');
+  if ((p.status === 'on-time' || p.status === 'late') && p.publishedBy) {
+    pubEl.classList.remove('hidden');
+    document.getElementById('pm-publisher-name').textContent = p.publishedBy;
+  } else pubEl.classList.add('hidden');
+
+  // Reset lang tabs
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.lang-tab').classList.add('active');
+  document.getElementById('lang-pt').classList.remove('hidden');
+  document.getElementById('lang-en').classList.add('hidden');
+
+  // Attachments
+  currentAttachments = Array.isArray(p.attachments) ? p.attachments.map(a => ({...a})) : [];
+  renderAttachments();
+
+  openModal('modal-post');
+}
+
+// ── ATTACHMENTS ──────────────────────────────────────────────
+let currentAttachments = [];
+const ATT_MAX_BYTES = 8 * 1024 * 1024;
+
+async function handleAttachFiles(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  document.getElementById('att-input').value = '';
+  // Limite só no modo browser; na cloud aceita até 50MB (limite do bucket)
+  const maxBytes = CLOUD_ON ? 50 * 1024 * 1024 : ATT_MAX_BYTES;
+
+  for (const file of files) {
+    if (file.size > maxBytes) {
+      alert(`"${file.name}" tem ${(file.size/1048576).toFixed(1)}MB — máximo ${(maxBytes/1048576).toFixed(0)}MB por ficheiro.`);
+      continue;
+    }
+    const id = 'a' + Date.now() + Math.round(performance.now() + Math.random()*1000);
+    if (CLOUD_ON) {
+      const placeholder = { id, name: file.name, type: file.type || '', size: file.size, uploading: true };
+      currentAttachments.push(placeholder);
+      renderAttachments();
+      try {
+        const up = await cloudUpload(file);
+        Object.assign(placeholder, { uploading: false, cloud: true, path: up.path, url: up.url });
+      } catch (err) {
+        currentAttachments = currentAttachments.filter(a => a.id !== id);
+        alert('Erro a enviar para a cloud: ' + err.message);
+      }
+      renderAttachments();
+    } else {
+      await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          currentAttachments.push({ id, name: file.name, type: file.type || '', size: file.size, data: e.target.result });
+          resolve();
+        };
+        reader.onerror = resolve;
+        reader.readAsDataURL(file);
+      });
+      renderAttachments();
+    }
+  }
+}
+
+function renderAttachments() {
+  const grid = document.getElementById('att-grid');
+  if (!grid) return;
+  grid.innerHTML = currentAttachments.map(a => {
+    const kb = a.size < 1048576 ? (a.size/1024).toFixed(0)+' KB' : (a.size/1048576).toFixed(1)+' MB';
+    if (a.uploading) {
+      return `<div class="att-item" title="A enviar ${a.name}"><div class="att-file"><div class="att-file-icon">⏳</div><div class="att-file-name">A enviar…</div></div></div>`;
+    }
+    const src = a.url || a.data;
+    let preview;
+    if (a.type.startsWith('image/')) preview = `<img src="${src}" alt="">`;
+    else if (a.type.startsWith('video/')) preview = `<video src="${src}" muted></video>`;
+    else {
+      const icon = a.type.includes('pdf') ? '📄' : a.type.startsWith('audio/') ? '🎵' : '📁';
+      preview = `<div class="att-file"><div class="att-file-icon">${icon}</div><div class="att-file-name">${a.name}</div></div>`;
+    }
+    return `<div class="att-item" title="${a.name} · ${kb}">
+      ${preview}
+      <div class="att-actions">
+        <button class="att-btn" onclick="downloadAttachment('${a.id}')" title="Download">⬇</button>
+        <button class="att-btn del" onclick="removeAttachment('${a.id}')" title="Remover">×</button>
+      </div>
+      <div class="att-meta">${a.cloud?'☁ ':''}${kb}</div>
+    </div>`;
+  }).join('');
+}
+
+function downloadAttachment(id) {
+  const a = currentAttachments.find(x => x.id === id);
+  if (!a) return;
+  if (a.url) { window.open(a.url, '_blank'); return; }
+  const link = document.createElement('a');
+  link.href = a.data; link.download = a.name;
+  document.body.appendChild(link); link.click(); link.remove();
+}
+
+function removeAttachment(id) {
+  const a = currentAttachments.find(x => x.id === id);
+  if (a && a.cloud && a.path) cloudDelete(a.path);
+  currentAttachments = currentAttachments.filter(x => x.id !== id);
+  renderAttachments();
+}
+
+function selectStatus(btn) {
+  document.querySelectorAll('.sb').forEach(b => { b.className = 'sb'; });
+  btn.className = 'sb active-' + btn.dataset.s;
+}
+
+function validateLink(platform, url) {
+  if (!url) return true;
+  const domain = PLATFORM_DOMAINS[platform];
+  if (Array.isArray(domain)) return domain.some(d => url.includes(d));
+  return url.includes(domain);
+}
+
+function savePost() {
+  const all = LS.posts();
+  const key = `${CY}-${String(CM).padStart(2,'0')}`;
+  const posts = all[key] || [];
+  const idx = posts.findIndex(p => p.id === currentPostId);
+  if (idx === -1) return;
+
+  const link = document.getElementById('pm-link').value.trim();
+  const statusEl = document.querySelector('.sb[class*="active-"]');
+  const status = statusEl ? statusEl.dataset.s : 'planned';
+
+  if (link && !validateLink(posts[idx].platform, link)) {
+    document.getElementById('pm-link-err').classList.add('show');
+    return;
+  }
+  document.getElementById('pm-link-err').classList.remove('show');
+
+  posts[idx].copyPt = document.getElementById('pm-copy-pt').value;
+  posts[idx].copyEn = document.getElementById('pm-copy-en').value;
+  posts[idx].cta = document.getElementById('pm-cta').value;
+  posts[idx].status = status;
+  posts[idx].link = link;
+  posts[idx].notes = document.getElementById('pm-notes').value;
+  posts[idx].attachments = currentAttachments.filter(a => !a.uploading);
+
+  if (status === 'on-time' || status === 'late') {
+    const sess = LS.session();
+    posts[idx].publishedBy = sess ? sess.firstName + ' ' + sess.lastName : '';
+  }
+
+  all[key] = posts;
+  try {
+    LS.savePosts(all);
+  } catch (err) {
+    alert('Espaço de armazenamento cheio — os anexos são demasiado grandes para guardar no browser. Remove alguns ficheiros ou usa ficheiros mais pequenos.');
+    return;
+  }
+  closeModal('modal-post');
+  renderGrid();
+  renderStats();
+}
+
+function switchLang(tab, targetId) {
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('lang-pt').classList.toggle('hidden', targetId !== 'lang-pt');
+  document.getElementById('lang-en').classList.toggle('hidden', targetId !== 'lang-en');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ADD POST
+// ═══════════════════════════════════════════════════════════
+function openAddModal() {
+  addDay = addDay || 1;
+  const t = I18N[LANG] || I18N.pt;
+  document.getElementById('add-day-label').textContent = `${addDay} ${LANG==='en'?'of':' de'} ${t.months[CM-1]} ${CY}`;
+  openModal('modal-add');
+}
+
+function saveNewPost() {
+  const platform = document.getElementById('add-platform').value;
+  const type = document.getElementById('add-type').value;
+  const category = document.getElementById('add-category').value;
+  const time = document.getElementById('add-time').value || '12:00';
+  const titlePt = document.getElementById('add-title-pt').value.trim();
+  const titleEn = document.getElementById('add-title-en').value.trim();
+  const ideaPt = document.getElementById('add-idea').value.trim();
+  const copyPt = document.getElementById('add-copy-pt').value.trim();
+  const cta = document.getElementById('add-cta').value.trim();
+  if (!titlePt) return;
+
+  const all = LS.posts();
+  const key = `${CY}-${String(CM).padStart(2,'0')}`;
+  if (!all[key]) all[key] = [];
+
+  all[key].push({
+    id: `${CY}-${CM}-${addDay}-custom-${Date.now()}`,
+    year:CY, month:CM, day:addDay,
+    dateStr:`${CY}-${String(CM).padStart(2,'0')}-${String(addDay).padStart(2,'0')}`,
+    platform, type, category, time,
+    titlePt, titleEn: titleEn||titlePt,
+    ideaPt, ideaEn: ideaPt,
+    copyPt, copyEn: '', cta,
+    status:'planned', link:'', notes:'',
+    isStory: type==='Story', publishedBy:''
+  });
+  LS.savePosts(all);
+  closeModal('modal-add');
+  renderGrid();
+  renderStats();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════════════════════
+function adminTab(btn, panelId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  if (panelId === 'tab-team') renderTeam();
+  if (panelId === 'tab-pending') renderPending();
+}
+
+function renderTeam() {
+  const sess = LS.session();
+  const users = LS.users();
+  const tbody = document.getElementById('team-tbody');
+  tbody.innerHTML = users.map(u => {
+    const tags = u.platforms.map(p => `<span class="ptag ${PLATFORM_SHORT[p]}">${PLATFORM_SHORT[p].toUpperCase()}</span>`).join('');
+    const canEdit = sess && (
+      (sess.role === 'admin' && u.role !== 'admin') ||
+      (sess.role === 'sub-admin' && u.role === 'member' && u.id !== sess.userId)
+    );
+    const editBtn = canEdit ? `<button class="nav-btn" onclick="openEditUser('${u.id}')">Editar</button>` : '—';
+    return `<tr>
+      <td style="color:var(--text);font-weight:600">${u.firstName} ${u.lastName}</td>
+      <td>${u.email}</td>
+      <td><span class="role-pill ${u.role}">${u.role.toUpperCase().replace('-',' ')}</span></td>
+      <td><div class="plat-tags">${tags}</div></td>
+      <td>${editBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPending() {
+  const invites = LS.invites().filter(i => i.status === 'pending');
+  const tbody = document.getElementById('pending-tbody');
+  if (invites.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:20px">Sem convites pendentes</td></tr>'; return; }
+  tbody.innerHTML = invites.map(i => {
+    const tags = i.platforms.map(p => `<span class="ptag ${PLATFORM_SHORT[p]}">${PLATFORM_SHORT[p].toUpperCase()}</span>`).join('');
+    const exp = new Date(i.expiresAt).toLocaleDateString('pt-PT');
+    return `<tr>
+      <td>${i.email}</td>
+      <td><span class="role-pill ${i.role}">${i.role.toUpperCase().replace('-',' ')}</span></td>
+      <td><div class="plat-tags">${tags}</div></td>
+      <td style="color:var(--dim)">${exp}</td>
+      <td style="display:flex;gap:6px;padding:12px">
+        <button class="nav-btn" onclick="cancelInvite('${i.token}')">Cancelar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sendInvite() {
+  const email = document.getElementById('inv-email').value.trim().toLowerCase();
+  const role = document.getElementById('inv-role').value;
+  const platforms = [...document.querySelectorAll('#tab-invite input[type=checkbox]:checked')].map(c => c.value);
+  if (!email) { alert('Insere um email.'); return; }
+
+  const exp = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+  const payload = {email, role, platforms, exp};
+  const b64 = btoa(JSON.stringify(payload));
+
+  // Save to local tracking (for pending list)
+  const invite = {email, role, platforms, token: b64.substring(0,16), status:'pending',
+    createdAt: new Date().toISOString(), expiresAt: new Date(exp).toISOString()};
+  const invites = LS.invites();
+  invites.push(invite);
+  LS.saveInvites(invites);
+
+  const base = location.href.split('?')[0];
+  const link = `${base}?invite=${b64}`;
+  document.getElementById('invite-link').value = link;
+  document.getElementById('invite-result').classList.add('show');
+}
+
+function copyInviteLink() {
+  const inp = document.getElementById('invite-link');
+  inp.select();
+  document.execCommand('copy');
+}
+
+function cancelInvite(token) {
+  const invites = LS.invites().map(i => i.token === token ? {...i, status:'cancelled'} : i);
+  LS.saveInvites(invites);
+  renderPending();
+}
+
+function openEditUser(userId) {
+  const users = LS.users();
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  document.getElementById('eu-id').value = u.id;
+  document.getElementById('eu-name').textContent = u.firstName + ' ' + u.lastName;
+  document.getElementById('eu-email').textContent = u.email;
+  document.getElementById('eu-role').value = u.role !== 'admin' ? u.role : 'member';
+  ['instagram','tiktok','youtube','facebook','twitter'].forEach(p => {
+    const el = document.getElementById('eu-'+PLATFORM_SHORT[p]);
+    if (el) el.checked = u.platforms.includes(p);
+  });
+  openModal('modal-edit-user');
+}
+
+function saveUserEdit() {
+  const id = document.getElementById('eu-id').value;
+  const role = document.getElementById('eu-role').value;
+  const platforms = ['instagram','tiktok','youtube','facebook','twitter'].filter(p => {
+    const el = document.getElementById('eu-'+PLATFORM_SHORT[p]);
+    return el && el.checked;
+  });
+  const users = LS.users().map(u => u.id === id ? {...u, role, platforms} : u);
+  LS.saveUsers(users);
+  closeModal('modal-edit-user');
+  renderTeam();
+}
+
+function removeUser() {
+  const id = document.getElementById('eu-id').value;
+  const name = document.getElementById('eu-name').textContent;
+  if (!confirm(`Remover "${name}" da equipa? Esta ação não pode ser desfeita.`)) return;
+  const users = LS.users().filter(u => u.id !== id);
+  LS.saveUsers(users);
+  closeModal('modal-edit-user');
+  renderTeam();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+function openSettingsModal() {
+  const sess = LS.session();
+  if (!sess) return;
+  const initials = (sess.firstName[0]||'') + (sess.lastName[0]||'');
+  document.getElementById('set-avatar').textContent = initials.toUpperCase();
+  document.getElementById('set-name').textContent = sess.firstName + ' ' + sess.lastName;
+  document.getElementById('set-email').textContent = sess.email;
+  const roleEl = document.getElementById('set-role');
+  roleEl.textContent = sess.role.toUpperCase().replace('-',' ');
+  roleEl.className = 'role-pill ' + sess.role;
+  const prefs = LS.prefs();
+  const isDark = (prefs.theme || 'dark') === 'dark';
+  document.getElementById('theme-toggle').checked = isDark;
+  document.getElementById('lang-pt-btn').classList.toggle('active', (prefs.lang||'pt') === 'pt');
+  document.getElementById('lang-en-btn').classList.toggle('active', (prefs.lang||'pt') === 'en');
+  openModal('modal-settings');
+}
+
+function toggleTheme(input) {
+  const theme = input.checked ? 'dark' : 'light';
+  applyTheme(theme);
+  const prefs = LS.prefs();
+  prefs.theme = theme;
+  LS.savePrefs(prefs);
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
+const I18N = {
+  pt: {
+    months: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+    weekdays: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
+    search: 'Pesquisar posts...',
+    logout: 'Sair',
+    admin: '⚙ Admin',
+    platforms: 'Plataformas',
+    status: 'Status',
+    planned: 'Planeado', scheduled: 'Agendado', ontime: 'Publicado ✓', late: 'Publicado tarde', notpub: 'Não publicado',
+    stats_pub: 'publicados',
+    all_filter: 'Todas',
+    add_post: '+ Adicionar Post',
+    settings_title: 'Definições',
+  },
+  en: {
+    months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    weekdays: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    search: 'Search posts...',
+    logout: 'Logout',
+    admin: '⚙ Admin',
+    platforms: 'Platforms',
+    status: 'Status',
+    planned: 'Planned', scheduled: 'Scheduled', ontime: 'Published ✓', late: 'Published late', notpub: 'Not published',
+    stats_pub: 'published',
+    all_filter: 'All',
+    add_post: '+ Add Post',
+    settings_title: 'Settings',
+  }
+};
+let LANG = 'pt';
+
+function setLang(lang, btn) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const prefs = LS.prefs();
+  prefs.lang = lang;
+  LS.savePrefs(prefs);
+  LANG = lang;
+  applyLang();
+  renderSidebar();
+  renderCalendar();
+}
+
+function applyLang() {
+  const t = I18N[LANG] || I18N.pt;
+  const si = document.getElementById('search-input');
+  if (si) si.placeholder = t.search;
+  const logBtns = document.querySelectorAll('[data-i18n="logout"]');
+  logBtns.forEach(el => el.textContent = t.logout);
+  const addBtn = document.getElementById('add-post-btn');
+  if (addBtn) addBtn.textContent = t.add_post;
+  const allFilt = document.querySelector('[data-pf="all"]');
+  if (allFilt) allFilt.textContent = t.all_filter;
+  const platTitle = document.querySelector('[data-i18n="platforms"]');
+  if (platTitle) platTitle.textContent = t.platforms;
+  const statTitle = document.querySelector('[data-i18n="status"]');
+  if (statTitle) statTitle.textContent = t.status;
+}
+
+function changePassword() {
+  const sess = LS.session();
+  const oldPw = document.getElementById('set-old-pw').value;
+  const newPw = document.getElementById('set-new-pw').value;
+  const conf = document.getElementById('set-pw2').value;
+  const errEl = document.getElementById('set-pw-err');
+  const okEl = document.getElementById('set-pw-ok');
+  errEl.classList.remove('show'); okEl.classList.remove('show');
+  const users = LS.users();
+  const idx = users.findIndex(u => u.id === sess.userId);
+  if (idx === -1 || users[idx].password !== oldPw) { errEl.textContent = 'Password atual incorreta.'; errEl.classList.add('show'); return; }
+  if (newPw.length < 8) { errEl.textContent = 'Mínimo 8 caracteres.'; errEl.classList.add('show'); return; }
+  if (newPw !== conf) { errEl.textContent = 'As passwords não coincidem.'; errEl.classList.add('show'); return; }
+  users[idx].password = newPw;
+  LS.saveUsers(users);
+  okEl.classList.add('show');
+  setTimeout(() => okEl.classList.remove('show'), 3000);
+  document.getElementById('set-old-pw').value = '';
+  document.getElementById('set-new-pw').value = '';
+  document.getElementById('set-pw2').value = '';
+}
+
+function changePhone() {
+  const sess = LS.session();
+  const country = document.getElementById('set-country').value;
+  const phone = document.getElementById('set-phone').value.trim();
+  if (!phone) return;
+  const users = LS.users().map(u => u.id === sess.userId ? {...u, phone: country + phone} : u);
+  LS.saveUsers(users);
+  document.getElementById('set-phone-ok').classList.add('show');
+  setTimeout(() => document.getElementById('set-phone-ok').classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeOverlay(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ═══════════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+});
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('v-login').classList.contains('active')) doLogin();
+});
+
+// Drag & drop em anexos
+document.addEventListener('DOMContentLoaded', () => {
+  const drop = document.getElementById('att-drop');
+  if (!drop) return;
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.add('drag');
+  }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); drop.classList.remove('drag');
+  }));
+  drop.addEventListener('drop', e => {
+    if (e.dataTransfer && e.dataTransfer.files) handleAttachFiles(e.dataTransfer.files);
+  });
+});
+
+// Also render team when admin view shows
+// Admin panel data loaded in showView('v-admin') directly
+</script>
+</body>
+</html>
